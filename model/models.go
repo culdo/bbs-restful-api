@@ -1,34 +1,40 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
-type User struct {
-	gorm.Model
+type UserRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-type BannedUser struct {
+type User struct {
 	gorm.Model
-	User User
+	UserRequest
+	Active bool `gorm:"default:true"`
+}
+
+type PostRequest struct {
+	Title    string `json:"title"`
+	Content  string `json:"content"`
 }
 
 type Post struct {
 	gorm.Model
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	Comments []Comment `json:"comments"`
-	UserID   uint   `json:"userid"`
+	PostRequest
+	Comments []Comment
+	Hidden bool `gorm:"default:false"`
+	UserID   uint
 }
 
-type HiddenPost struct {
-	gorm.Model
-	Post Post
+type CommentRequest struct {
+	Content string `json:"content"`
 }
 
 type Comment struct {
 	gorm.Model
-	Content string `json:"content"`
-	UserID      uint   `json:"userid"`
-	PostID      uint   `json:"postid"`
+	CommentRequest
+	UserID      uint
+	PostID      uint
 }

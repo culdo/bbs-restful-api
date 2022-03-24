@@ -18,7 +18,7 @@ func init() {
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 
-	router := route.SetupRoutes()
+	router := router.SetupRouter()
 
 	port := os.Getenv("PORT")
 	if port == "" {

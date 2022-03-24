@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	jwtapple2 "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
+	"github.com/gin-gonic/gin"
 )
 
 func CreatePost(c *gin.Context) {
@@ -20,12 +20,14 @@ func CreatePost(c *gin.Context) {
 		return
 	}
 
-	var post model.Post
-	if err := c.ShouldBindJSON(&post); err != nil {
+	var post_req model.PostRequest
+	if err := c.ShouldBindJSON(&post_req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	var post model.Post
+	post.PostRequest = post_req
 	post.UserID = user.ID
 	model.DB.Save(&post)
 	c.JSON(http.StatusCreated, gin.H{"message": "Post created successfully!", "Post": post})
@@ -44,18 +46,19 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	var post model.Post
-	model.DB.Where("id = ?", post_id).First(&post)
-	var comment model.Comment
-	if err := c.ShouldBindJSON(&comment); err != nil {
+	var comment_req model.CommentRequest
+	if err := c.ShouldBindJSON(&comment_req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	var post model.Post
+	model.DB.Where("id = ?", post_id).First(&post)
 	
+	var comment model.Comment
+	comment.CommentRequest = comment_req
 	comment.UserID = user.ID
-	model.DB.Model(&post).Association("Comments").Append(comment)
-	model.DB.Save(&post)
-	c.JSON(http.StatusCreated, gin.H{"message": "Post created successfully!", "Post": post})
+	model.DB.Model(&post).Association("Comments").Append(&comment)
+	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully!", "Post": post})
 }
 
 func FetchAllPost(c *gin.Context) {
@@ -70,7 +73,23 @@ func FetchAllPost(c *gin.Context) {
 	}
 
 	var posts []model.Post
+	var comments []model.Comment
 	model.DB.Find(&posts)
+
+	if  _, exists := c.Get("hidden_post"); exists{
+		var buff_posts []model.Post
+		for _, post := range posts {
+			if !post.Hidden {
+				buff_posts = append(buff_posts, post)	
+			}
+		}
+		posts = buff_posts
+	}
+
+	for i, post := range posts {
+		model.DB.Model(&post).Association("Comments").Find(&comments)
+		posts[i].Comments = comments
+	}
 
 	if len(posts) <= 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No Posts found", "data": posts})

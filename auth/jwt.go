@@ -4,9 +4,9 @@ import (
 	"time"
 
 	jwtapple2 "github.com/appleboy/gin-jwt/v2"
-	"github.com/gin-gonic/gin"
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
+	"github.com/gin-gonic/gin"
 )
 
 func SetupAuth() (*jwtapple2.GinJWTMiddleware, error) {
@@ -49,12 +49,13 @@ func identityHandler(c *gin.Context) interface{} {
 }
 
 func authenticator(c *gin.Context) (interface{}, error) {
-	var loginVals model.User
+	var loginVals model.UserRequest
 	if err := c.ShouldBind(&loginVals); err != nil {
 		return "", jwtapple2.ErrMissingLoginValues
 	}
 
 	var result model.User
+	result.UserRequest = loginVals
 	model.DB.Where("username = ? AND password = ?",
 		loginVals.Username, loginVals.Password).First(&result)
 

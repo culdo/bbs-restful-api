@@ -11,42 +11,30 @@ func HiddenPost(c *gin.Context) {
 	postid := c.Param("id")
 
 	var post model.Post
-	model.DB.Where("id = ?", postid).First(&post)
+	model.DB.First(&post, postid)
 
 	if post.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post id"})
 		return
 	}
 
-	var hidden_post model.HiddenPost
-	if err := c.ShouldBindJSON(&post); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	hidden_post.Post = post
-	model.DB.Save(&hidden_post)
-	c.JSON(http.StatusCreated, gin.H{"message": "HiddenPost created successfully!", "HiddenPost": hidden_post})
+	post.Hidden = true
+	model.DB.Save(&post)
+	c.JSON(http.StatusCreated, gin.H{"message": "Post is hidden!", "HiddenPost": post})
 }
 
 func BanUser(c *gin.Context) {
 	userid := c.Param("id")
 
 	var user model.User
-	model.DB.Where("id = ?", userid).First(&user)
+	model.DB.First(&user, userid)
 
 	if user.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return
 	}
 
-	var banned_user model.BannedUser
-	if err := c.ShouldBindJSON(&banned_user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	banned_user.User = user
-	model.DB.Save(&banned_user)
-	c.JSON(http.StatusCreated, gin.H{"message": "BannedUser created successfully!", "BannedUser": banned_user})
+	user.Active = false
+	model.DB.Save(&user)
+	c.JSON(http.StatusCreated, gin.H{"message": "User is banned!", "BannedUser": user})
 }
