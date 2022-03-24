@@ -10,6 +10,8 @@
 1. 管理者可以看到目前的留言並搜尋留言內容
 2. 管理者可以隱藏留言
 3. 管理者可以將使用者停權
+# Develop
+`go run main.go`
 # Test Case
 * 請帶入`/login`回傳之JWT Token進行測試
 ## 使用者
