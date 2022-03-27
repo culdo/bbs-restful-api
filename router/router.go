@@ -40,6 +40,7 @@ func SetupRouter() *gin.Engine {
 	admin.Use(middleware.IsAdmin())
 	{
 		admin.GET("/posts", controller.FetchAllPost)
+		admin.GET("/posts/search", controller.SearchAllPost)
 		admin.GET("/posts/:id/hide", controller.HiddenPost)
 		admin.GET("/users/:id/ban", controller.BanUser)
 	}

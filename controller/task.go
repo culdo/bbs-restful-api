@@ -62,16 +62,6 @@ func CreateComment(c *gin.Context) {
 }
 
 func FetchAllPost(c *gin.Context) {
-	claims := jwtapple2.ExtractClaims(c)
-
-	var user model.User
-	model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user)
-
-	if user.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
-		return
-	}
-
 	var posts []model.Post
 	var comments []model.Comment
 	model.DB.Find(&posts)
@@ -99,3 +89,21 @@ func FetchAllPost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": posts})
 }
 
+func SearchAllPost(c *gin.Context) {
+	var posts []model.Post
+	var comments []model.Comment
+	search_string := c.Query("string")
+	model.DB.Where("content LIKE ?", "%"+search_string+"%").Find(&posts)
+
+	for i, post := range posts {
+		model.DB.Model(&post).Association("Comments").Find(&comments)
+		posts[i].Comments = comments
+	}
+
+	if len(posts) <= 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No Posts found", "data": posts})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": posts})
+}
