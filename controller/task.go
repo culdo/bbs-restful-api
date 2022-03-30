@@ -63,8 +63,7 @@ func CreateComment(c *gin.Context) {
 
 func FetchAllPost(c *gin.Context) {
 	var posts []model.Post
-	var comments []model.Comment
-	model.DB.Find(&posts)
+	model.DB.Preload("Comments").Find(&posts)
 
 	if  _, exists := c.Get("hidden_post"); exists{
 		var buff_posts []model.Post
@@ -74,11 +73,6 @@ func FetchAllPost(c *gin.Context) {
 			}
 		}
 		posts = buff_posts
-	}
-
-	for i, post := range posts {
-		model.DB.Model(&post).Association("Comments").Find(&comments)
-		posts[i].Comments = comments
 	}
 
 	if len(posts) <= 0 {
@@ -91,14 +85,8 @@ func FetchAllPost(c *gin.Context) {
 
 func SearchAllPost(c *gin.Context) {
 	var posts []model.Post
-	var comments []model.Comment
 	search_string := c.Query("string")
-	model.DB.Where("content LIKE ?", "%"+search_string+"%").Find(&posts)
-
-	for i, post := range posts {
-		model.DB.Model(&post).Association("Comments").Find(&comments)
-		posts[i].Comments = comments
-	}
+	model.DB.Preload("Comments").Where("content LIKE ?", "%"+search_string+"%").Find(&posts)
 
 	if len(posts) <= 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No Posts found", "data": posts})

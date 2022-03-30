@@ -7,7 +7,7 @@ import (
 	"github.com/culdo/bbs-restful-api/model"
 )
 
-func HiddenPost(c *gin.Context) {
+func HidePost(c *gin.Context) {
 	postid := c.Param("id")
 
 	var post model.Post
@@ -21,6 +21,22 @@ func HiddenPost(c *gin.Context) {
 	post.Hidden = true
 	model.DB.Save(&post)
 	c.JSON(http.StatusCreated, gin.H{"message": "Post is hidden!", "HiddenPost": post})
+}
+
+func UnhidePost(c *gin.Context) {
+	postid := c.Param("id")
+
+	var post model.Post
+	model.DB.First(&post, postid)
+
+	if post.ID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post id"})
+		return
+	}
+
+	post.Hidden = false
+	model.DB.Save(&post)
+	c.JSON(http.StatusCreated, gin.H{"message": "Post is Unhidden!", "UnhiddenPost": post})
 }
 
 func BanUser(c *gin.Context) {
@@ -37,4 +53,20 @@ func BanUser(c *gin.Context) {
 	user.Active = false
 	model.DB.Save(&user)
 	c.JSON(http.StatusCreated, gin.H{"message": "User is banned!", "BannedUser": user})
+}
+
+func ActivateUser(c *gin.Context) {
+	userid := c.Param("id")
+
+	var user model.User
+	model.DB.First(&user, userid)
+
+	if user.ID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		return
+	}
+
+	user.Active = true
+	model.DB.Save(&user)
+	c.JSON(http.StatusCreated, gin.H{"message": "User is active!", "ActiveUser": user})
 }

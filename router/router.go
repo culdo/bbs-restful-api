@@ -32,7 +32,7 @@ func SetupRouter() *gin.Engine {
 	{
 		bbs.POST("/posts", controller.CreatePost)
 		bbs.GET("/posts", middleware.IsPostHidden(), controller.FetchAllPost)
-		bbs.POST("/posts/:id/comment", controller.CreateComment)
+		bbs.POST("/posts/:id/comments", controller.CreateComment)
 	}
 
 	admin := router.Group("/admin")
@@ -41,8 +41,10 @@ func SetupRouter() *gin.Engine {
 	{
 		admin.GET("/posts", controller.FetchAllPost)
 		admin.GET("/posts/search", controller.SearchAllPost)
-		admin.GET("/posts/:id/hide", controller.HiddenPost)
+		admin.GET("/posts/:id/hide", controller.HidePost)
+		admin.GET("/posts/:id/unhide", controller.UnhidePost)
 		admin.GET("/users/:id/ban", controller.BanUser)
+		admin.GET("/users/:id/activate", controller.ActivateUser)
 	}
 
 	authorization := router.Group("/auth")

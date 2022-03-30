@@ -14,17 +14,18 @@
 `go run main.go`
 # Test Case
 * 請帶入`/login`回傳之JWT Token進行測試
+* bash token variable `token=resp_token`
 ## 使用者
 ### 註冊
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/register`
 ### 登入
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 發布留言
-`curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
+`curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
 ### 取得所有留言(不包含隱藏留言)
-`curl -i -X GET -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
 ### 回覆留言(id = 2)
-`curl -i -X POST -d '{"content":"test_comment"}' -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/post/2/comments`
+`curl -i -X POST -d '{"content":"test_comment"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/post/2/comments`
 
 ## 管理員
 ### 註冊(測試用)
@@ -32,13 +33,17 @@
 ### 登入
 `curl -i -X POST -d '{"username":"admin","password":"admin"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 停權使用者(id = 1)
-`curl -i -X GET -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/admin/user/1/ban`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/user/1/ban`
+### 解封使用者(id = 1)
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/user/1/activate`
 ### 隱藏留言(id = 2)
-`curl -i -X GET -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/2/hide`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/2/hide`
+### 顯示留言(id = 2)
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/2/unhide`
 ### 取得所有留言(包含隱藏留言)
-`curl -i -X GET -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts`
 ### 搜尋留言內容，回傳留言
-`curl -i -X GET -H 'Authorization: Bearer [jwt token]' -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?string="123"`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?string="123"`
 
 # Dependency
 * gin
