@@ -43,7 +43,7 @@
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?keyword="123"`
 
 # To-do-list
-- [ ] Add salt on password accessing
+- [x] Use bcrypt on password accessing
 - [ ] Deploy on cloud service
 
 # Dependency
