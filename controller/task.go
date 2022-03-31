@@ -23,14 +23,14 @@ func CreatePost(c *gin.Context) {
 		return
 	}
 
-	var post_req model.PostRequest
-	if err := c.ShouldBindJSON(&post_req); err != nil {
+	var postReq model.PostRequest
+	if err := c.ShouldBindJSON(&postReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var post model.Post
-	post.PostRequest = post_req
+	post.PostRequest = postReq
 	post.UserID = user.ID
 	if err := model.Save(&post); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -40,7 +40,7 @@ func CreatePost(c *gin.Context) {
 }
 
 func CreateComment(c *gin.Context) {
-	post_id := c.Param("id")
+	pid := c.Param("id")
 	claims := jwtapple2.ExtractClaims(c)
 	user, err := model.FindUserByID(claims[config.IdentityKey])
 	if err != nil {
@@ -59,7 +59,7 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	post, err := model.AddComment(post_id, comment_req, user.ID)
+	post, err := model.AddComment(pid, comment_req, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
