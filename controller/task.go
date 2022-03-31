@@ -12,7 +12,7 @@ import (
 func CreatePost(c *gin.Context) {
 	claims := jwtapple2.ExtractClaims(c)
 
-	user, err := model.FindUser(claims[config.IdentityKey])
+	user, err := model.FindUserByID(claims[config.IdentityKey])
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,7 +42,7 @@ func CreatePost(c *gin.Context) {
 func CreateComment(c *gin.Context) {
 	post_id := c.Param("id")
 	claims := jwtapple2.ExtractClaims(c)
-	user, err := model.FindUser(claims[config.IdentityKey])
+	user, err := model.FindUserByID(claims[config.IdentityKey])
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -69,8 +69,8 @@ func CreateComment(c *gin.Context) {
 
 func FetchAllPost(c *gin.Context) {
 
-	value, _ := c.Get("hidden_post")
-	posts, err := model.FetchAllPost(value)
+	hiddenPost, _ := c.Get("hiddenPost")
+	posts, err := model.FetchAllPost(hiddenPost)
 	if err != nil{
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

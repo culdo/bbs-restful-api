@@ -8,10 +8,13 @@ import (
 )
 
 func HidePost(c *gin.Context) {
-	postid := c.Param("id")
+	pid := c.Param("id")
 
-	var post model.Post
-	model.DB.First(&post, postid)
+	post, err := model.FindPost(pid)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	if post.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post id"})
@@ -24,10 +27,13 @@ func HidePost(c *gin.Context) {
 }
 
 func UnhidePost(c *gin.Context) {
-	postid := c.Param("id")
+	pid := c.Param("id")
 
-	var post model.Post
-	model.DB.First(&post, postid)
+	post, err := model.FindPost(pid)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	if post.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post id"})
@@ -40,10 +46,13 @@ func UnhidePost(c *gin.Context) {
 }
 
 func BanUser(c *gin.Context) {
-	userid := c.Param("id")
+	uid := c.Param("id")
 
-	var user model.User
-	model.DB.First(&user, userid)
+	user, err := model.FindUserByID(uid)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	if user.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
@@ -56,11 +65,14 @@ func BanUser(c *gin.Context) {
 }
 
 func ActivateUser(c *gin.Context) {
-	userid := c.Param("id")
+	uid := c.Param("id")
 
-	var user model.User
-	model.DB.First(&user, userid)
-
+	user, err := model.FindUserByID(uid)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
 	if user.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return

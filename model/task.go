@@ -19,9 +19,9 @@ func Init() *gorm.DB {
 	return DB
 }
 
-func FindPost(post_id interface{}) (*Post, error) {
+func FindPost(pid interface{}) (*Post, error) {
 	var post Post
-	if err := DB.Where("id = ?", post_id).First(&post).Error; err != nil {
+	if err := DB.Where("id = ?", pid).First(&post).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -35,22 +35,38 @@ func FetchAllPost(hidden interface{}) ([]Post, error) {
 	return posts, nil
 }
 
-func FindUser(user_id interface{}) (*User, error) {
+func FindUserByID(uid interface{}) (*User, error) {
 	var user User
-	if err := DB.Where("id = ?", user_id).First(&user).Error; err != nil {
+	if err := DB.Where("id = ?", uid).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func AddComment(post_id interface{}, comment_req CommentRequest, user_id uint) (*Post, error) {
+func FindUserByName(name interface{}) (*User, error) {
+	var user User
+	if err := DB.Where("username = ?", name).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func FindAdmin(uid interface{}) (*User, error) {
+	var admin User
+	if err := DB.Where("id = ?", uid).First(&admin, "username = ?", "admin").Error; err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
+func AddComment(pid interface{}, commentReq CommentRequest, uid uint) (*Post, error) {
 	var post Post
-	if err := DB.Where("id = ?", post_id).First(&post).Error; err != nil {
+	if err := DB.Where("id = ?", pid).First(&post).Error; err != nil {
 		return nil, err
 	}
 	var comment Comment
-	comment.CommentRequest = comment_req
-	comment.UserID = user_id
+	comment.CommentRequest = commentReq
+	comment.UserID = uid
 	if err := DB.Model(&post).Association("Comments").Append(&comment); err != nil {
 		return nil, err
 	}

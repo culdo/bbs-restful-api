@@ -31,7 +31,7 @@ func SetupRouter() *gin.Engine {
 	bbs.Use(middleware.IsUserActived())
 	{
 		bbs.POST("/posts", controller.CreatePost)
-		bbs.GET("/posts", middleware.IsPostHidden(), controller.FetchAllPost)
+		bbs.GET("/posts", middleware.DoHidePost(true), controller.FetchAllPost)
 		bbs.POST("/posts/:id/comments", controller.CreateComment)
 	}
 
@@ -39,7 +39,7 @@ func SetupRouter() *gin.Engine {
 	admin.Use(authMiddleware.MiddlewareFunc())
 	admin.Use(middleware.IsAdmin())
 	{
-		admin.GET("/posts", controller.FetchAllPost)
+		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchAllPost)
 		admin.GET("/posts/search", controller.SearchAllPost)
 		admin.GET("/posts/:id/hide", controller.HidePost)
 		admin.GET("/posts/:id/unhide", controller.UnhidePost)

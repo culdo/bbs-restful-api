@@ -13,12 +13,17 @@ func IsAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := jwtapple2.ExtractClaims(c)
 
-		var user model.User
-		model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user, "username = ?", "admin")
+		admin, err := model.FindUserByID(claims[config.IdentityKey])
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
 
-		if user.ID <= 0 {
+		if admin.ID <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Admin id"})
 			c.Abort()
+			return
 		}
 
 		c.Next()
@@ -29,8 +34,11 @@ func IsUserActived() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := jwtapple2.ExtractClaims(c)
 
-		var user model.User
-		model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user)
+		user, err := model.FindUserByID(claims[config.IdentityKey])
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
 		if !user.Active {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "User is banned"})
@@ -42,9 +50,9 @@ func IsUserActived() gin.HandlerFunc {
 	}
 }
 
-func IsPostHidden() gin.HandlerFunc {
+func DoHidePost(answer bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("hidden_post", true) 
+		c.Set("hiddenPost", !answer) 
 		c.Next()
 	}
 }
