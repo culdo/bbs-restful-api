@@ -12,10 +12,13 @@ import (
 func CreatePost(c *gin.Context) {
 	claims := jwtapple2.ExtractClaims(c)
 
-	var user model.User
-	model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user)
+	user, err := model.FindUser(claims[config.IdentityKey])
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if user.ID <= 0 {
+	if user.ID <= 0{
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return
 	}
@@ -29,17 +32,21 @@ func CreatePost(c *gin.Context) {
 	var post model.Post
 	post.PostRequest = post_req
 	post.UserID = user.ID
-	model.DB.Save(&post)
+	if err := model.Save(&post); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Post created successfully!", "Post": post})
 }
 
 func CreateComment(c *gin.Context) {
 	post_id := c.Param("id")
-	
 	claims := jwtapple2.ExtractClaims(c)
-
-	var user model.User
-	model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user)
+	user, err := model.FindUser(claims[config.IdentityKey])
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	if user.ID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
@@ -51,28 +58,22 @@ func CreateComment(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var post model.Post
-	model.DB.Where("id = ?", post_id).First(&post)
-	
-	var comment model.Comment
-	comment.CommentRequest = comment_req
-	comment.UserID = user.ID
-	model.DB.Model(&post).Association("Comments").Append(&comment)
+
+	post, err := model.AddComment(post_id, comment_req, user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully!", "Post": post})
 }
 
 func FetchAllPost(c *gin.Context) {
-	var posts []model.Post
-	model.DB.Preload("Comments").Find(&posts)
 
-	if  _, exists := c.Get("hidden_post"); exists{
-		var buff_posts []model.Post
-		for _, post := range posts {
-			if !post.Hidden {
-				buff_posts = append(buff_posts, post)	
-			}
-		}
-		posts = buff_posts
+	value, _ := c.Get("hidden_post")
+	posts, err := model.FetchAllPost(value)
+	if err != nil{
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
 	}
 
 	if len(posts) <= 0 {
@@ -84,9 +85,13 @@ func FetchAllPost(c *gin.Context) {
 }
 
 func SearchAllPost(c *gin.Context) {
-	var posts []model.Post
-	search_string := c.Query("string")
-	model.DB.Preload("Comments").Where("content LIKE ?", "%"+search_string+"%").Find(&posts)
+	
+	keyword := c.Query("keyword")
+	posts, err := model.SearchPost(keyword)
+	if err != nil{
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
 	if len(posts) <= 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No Posts found", "data": posts})

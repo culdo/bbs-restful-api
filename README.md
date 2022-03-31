@@ -43,7 +43,7 @@
 ### 取得所有留言(包含隱藏留言)
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts`
 ### 搜尋留言內容，回傳留言
-`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?string="123"`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?keyword="123"`
 
 # Dependency
 * gin
