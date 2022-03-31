@@ -17,7 +17,7 @@ func init() {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 
 	router := router.SetupRouter()
 
