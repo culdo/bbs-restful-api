@@ -13,6 +13,7 @@ import (
 func init() {
 	db := model.Init()
 	migration.Migrate(db)
+	model.CreateAdmin()
 }
 
 func main() {

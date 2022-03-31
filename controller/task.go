@@ -12,16 +12,7 @@ import (
 func CreatePost(c *gin.Context) {
 	claims := jwtapple2.ExtractClaims(c)
 
-	user, err := model.FindUserByID(claims[config.IdentityKey])
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if user.ID <= 0{
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
-		return
-	}
+	uid := uint(claims[config.IdentityKey].(float64))
 
 	var postReq model.PostRequest
 	if err := c.ShouldBindJSON(&postReq); err != nil {
@@ -31,7 +22,7 @@ func CreatePost(c *gin.Context) {
 
 	var post model.Post
 	post.PostRequest = postReq
-	post.UserID = user.ID
+	post.UserID = uid
 	if err := model.Save(&post); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,16 +33,8 @@ func CreatePost(c *gin.Context) {
 func CreateComment(c *gin.Context) {
 	pid := c.Param("id")
 	claims := jwtapple2.ExtractClaims(c)
-	user, err := model.FindUserByID(claims[config.IdentityKey])
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	uid := uint(claims[config.IdentityKey].(float64))
 
-	if user.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
-		return
-	}
 
 	var comment_req model.CommentRequest
 	if err := c.ShouldBindJSON(&comment_req); err != nil {
@@ -59,7 +42,7 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	post, err := model.AddComment(pid, comment_req, user.ID)
+	post, err := model.CreateComment(pid, comment_req, uid)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -69,8 +52,8 @@ func CreateComment(c *gin.Context) {
 
 func FetchAllPost(c *gin.Context) {
 
-	hiddenPost, _ := c.Get("hiddenPost")
-	posts, err := model.FetchAllPost(hiddenPost)
+	doHidePost, _ := c.Get("doHidePost")
+	posts, err := model.FetchAllPost(doHidePost.(bool))
 	if err != nil{
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

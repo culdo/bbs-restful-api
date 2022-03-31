@@ -28,7 +28,6 @@ func SetupRouter() *gin.Engine {
 
 	bbs := router.Group("/bbs")
 	bbs.Use(authMiddleware.MiddlewareFunc())
-	bbs.Use(middleware.IsUserActived())
 	{
 		bbs.POST("/posts", controller.CreatePost)
 		bbs.GET("/posts", middleware.DoHidePost(true), controller.FetchAllPost)

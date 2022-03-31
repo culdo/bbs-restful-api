@@ -42,28 +42,31 @@ func payload(data interface{}) jwtapple2.MapClaims {
 
 func identityHandler(c *gin.Context) interface{} {
 	claims := jwtapple2.ExtractClaims(c)
-	var user model.User
-	model.DB.Where("id = ?", claims[config.IdentityKey]).First(&user)
+	user, _ := model.FindUserByID(claims[config.IdentityKey])
 
-	return user
+	return *user
 }
 
 func authenticator(c *gin.Context) (interface{}, error) {
 	var loginVals model.UserRequest
 	if err := c.ShouldBind(&loginVals); err != nil {
-		return "", jwtapple2.ErrMissingLoginValues
+		return nil, jwtapple2.ErrMissingLoginValues
 	}
 
-	var result model.User
-	result.UserRequest = loginVals
-	model.DB.Where("username = ? AND password = ?",
-		loginVals.Username, loginVals.Password).First(&result)
+	user, err := model.Login(loginVals)
+	if err != nil {
+		return nil, err
+	}
 
-	if result.ID == 0 {
+	if user.ID == 0 {
 		return nil, jwtapple2.ErrFailedAuthentication
 	}
+	
+	if 	user.ID > 1 && !user.Active	{
+		return nil, jwtapple2.ErrForbidden
+	}
 
-	return &result, nil
+	return user, nil
 }
 
 func authorizator(data interface{}, c *gin.Context) bool {

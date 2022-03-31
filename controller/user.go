@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/culdo/bbs-restful-api/model"
@@ -15,19 +14,7 @@ func RegisterEndpoint(c *gin.Context) {
 		return
 	}
 
-	userCheck, err := model.FindUserByName(userReq.Username)
-	userCheck.UserRequest = userReq
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if userCheck.ID > 0 {
-		c.JSON(http.StatusConflict, gin.H{"message": "User already exists"})
-		return
-	}
-	log.Println(userCheck)
-	
-	if err := model.Save(&userCheck); err != nil{
+	if err := model.Register(userReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

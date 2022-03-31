@@ -1,7 +1,9 @@
 package model
 
 import (
+	"errors"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -10,7 +12,6 @@ var DB *gorm.DB
 
 func Init() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-
 	if err != nil {
 		panic(err.Error())
 	}
@@ -19,25 +20,42 @@ func Init() *gorm.DB {
 	return DB
 }
 
+func Login(userReq UserRequest) (*User, error) {
+	user, err := FindUserByName(userReq.Username)
+	if err != nil {
+		return nil, err
+	}
+	if err := bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(userReq.Password)); err != nil {
+		return nil, errors.New("password incorrect")
+	}
+	return user, nil
+}
+
 func FindPost(pid interface{}) (*Post, error) {
 	var post Post
-	if err := DB.Where("id = ?", pid).First(&post).Error; err != nil {
+	if err := DB.Where("id = ?", pid).Find(&post).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
 }
 
-func FetchAllPost(hidden interface{}) ([]Post, error) {
+func FetchAllPost(doHidePost bool) ([]Post, error) {
 	var posts []Post
-	if err := DB.Preload("Comments").Where("hidden = ?", hidden).Find(&posts).Error; err != nil {
-		return nil, err
+	if doHidePost {
+		if err := DB.Preload("Comments").Where("hidden = ?", false).Find(&posts).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		if err := DB.Preload("Comments").Find(&posts).Error; err != nil {
+			return nil, err
+		}
 	}
 	return posts, nil
 }
 
 func FindUserByID(uid interface{}) (*User, error) {
 	var user User
-	if err := DB.Where("id = ?", uid).First(&user).Error; err != nil {
+	if err := DB.Where("id = ?", uid).Find(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -59,9 +77,9 @@ func FindAdmin(uid interface{}) (*User, error) {
 	return &admin, nil
 }
 
-func AddComment(pid interface{}, commentReq CommentRequest, uid uint) (*Post, error) {
+func CreateComment(pid interface{}, commentReq CommentRequest, uid uint) (*Post, error) {
 	var post Post
-	if err := DB.Where("id = ?", pid).First(&post).Error; err != nil {
+	if err := DB.Where("id = ?", pid).Find(&post).Error; err != nil {
 		return nil, err
 	}
 	var comment Comment
@@ -70,20 +88,20 @@ func AddComment(pid interface{}, commentReq CommentRequest, uid uint) (*Post, er
 	if err := DB.Model(&post).Association("Comments").Append(&comment); err != nil {
 		return nil, err
 	}
-	
+
 	return &post, nil
 }
 
 func SearchPost(keyword string) ([]Post, error) {
 	var posts []Post
-	if err := DB.Preload("Comments").Where("content LIKE ?", "%"+keyword+"%").Find(&posts).Error;err != nil {
+	if err := DB.Preload("Comments").Where("content LIKE ?", "%"+keyword+"%").Find(&posts).Error; err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
 
-func Save(object interface{}) (error) {
-	if err := DB.Save(&object).Error;err != nil {
+func Save(object interface{}) error {
+	if err := DB.Save(object).Error; err != nil {
 		return err
 	}
 	return nil

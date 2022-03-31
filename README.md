@@ -1,4 +1,4 @@
-# 留言板Restful API
+# BBS RESTful API
 # 功能
 ## 使用者
 1. 使用者可以瀏覽目前的留言
@@ -27,8 +27,6 @@
 `curl -i -X POST -d '{"content":"test_comment"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/post/2/comments`
 
 ## 管理員
-### 註冊(測試用)
-`curl -i -X POST -d '{"username":"admin","password":"admin"}' -H 'Content-Type: application/json' 127.0.0.1:8080/register`
 ### 登入
 `curl -i -X POST -d '{"username":"admin","password":"admin"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 停權使用者(id = 1)
