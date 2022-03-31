@@ -8,13 +8,12 @@
 5. 使用者登入後回覆特定留言，但只開放針對留言做回覆，不能回覆一則回覆
 ## 管理員
 1. 管理者可以看到目前的留言並搜尋留言內容
-2. 管理者可以隱藏留言
-3. 管理者可以將使用者停權
+2. 管理者可以隱藏/顯示留言
+3. 管理者可以將使用者停權/解封
 # Develop
 `go run main.go`
 # Test Case
-* 請帶入`/login`回傳之JWT Token進行測試
-* bash token variable `token=resp_token`
+* $token請帶入`/login`回傳之JWT Token進行測試
 ## 使用者
 ### 註冊
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/register`
@@ -44,6 +43,10 @@
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts`
 ### 搜尋留言內容，回傳留言
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?keyword="123"`
+
+# To-do-list
+- [ ] Add salt on password accessing
+- [ ] Deploy on cloud service
 
 # Dependency
 * gin
