@@ -23,16 +23,11 @@ func SetupRouter() *gin.Engine {
 	})
 
 	router.POST("/login", authMiddleware.LoginHandler)
-
 	router.POST("/register", controller.RegisterEndpoint)
 
-	bbs := router.Group("/bbs")
-	bbs.Use(authMiddleware.MiddlewareFunc())
-	{
-		bbs.POST("/posts", controller.CreatePost)
-		bbs.GET("/posts", middleware.DoHidePost(true), controller.FetchAllPost)
-		bbs.POST("/posts/:id/comments", controller.CreateComment)
-	}
+	router.GET("/posts", middleware.DoHidePost(true), controller.FetchAllPost)
+	router.POST("/posts", authMiddleware.MiddlewareFunc(), controller.CreatePost)
+	router.POST("/posts/:id/comments", authMiddleware.MiddlewareFunc(), controller.CreateComment)
 
 	admin := router.Group("/admin")
 	admin.Use(authMiddleware.MiddlewareFunc())

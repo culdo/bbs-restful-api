@@ -20,11 +20,11 @@
 ### 登入
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 發布留言
-`curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
+`curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
 ### 取得所有留言(不包含隱藏留言)
-`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/posts`
+`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
 ### 回覆留言(id = 2)
-`curl -i -X POST -d '{"content":"test_comment"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/bbs/post/2/comments`
+`curl -i -X POST -d '{"content":"test_comment"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/post/2/comments`
 
 ## 管理員
 ### 登入
