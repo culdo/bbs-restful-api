@@ -17,15 +17,14 @@ func Register(userReq UserRequest) error {
 	if user.ID > 0 {
 		return errors.New("User already exists")
 	}
-	var newUser User
-	newUser.Username = userReq.Username
-	newUser.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
+	user.Username = userReq.Username
+	user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
 	if err != nil{
 		return err
 	}
-	if err := Save(&newUser); err != nil{
+	if err := Save(&user); err != nil{
 		return err
 	}
-	log.Println(newUser)
+	log.Println(user)
 	return nil
 }
