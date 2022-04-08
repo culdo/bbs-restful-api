@@ -13,7 +13,8 @@
 3. 可以將使用者停權/解封
 # Develop
 ```bash
-export DATABASE_URL="postgres://your_database_url"
+export DATABASE_URL="your_postgredb_url"
+export JWT_KEY="JWT_secret_key_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
@@ -33,7 +34,7 @@ go run main.go
 
 ## 管理員
 ### 登入
-`curl -i -X POST -d '{"username":"admin","password":"admin"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
+`curl -i -X POST -d '{"username":"admin","password":"your_admin_pass"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 停權使用者(id = 1)
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/user/1/ban`
 ### 解封使用者(id = 1)

@@ -12,7 +12,7 @@ import (
 func SetupAuth() (*jwtapple2.GinJWTMiddleware, error) {
 	authMiddleware, err := jwtapple2.New(&jwtapple2.GinJWTMiddleware{
 		Realm:           "bbsapigo",
-		Key:             []byte(config.Key),
+		Key:             []byte(config.JWTKey),
 		Timeout:         time.Hour * 24,
 		MaxRefresh:      time.Hour,
 		IdentityKey:     config.IdentityKey,

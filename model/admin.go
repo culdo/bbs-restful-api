@@ -2,8 +2,8 @@ package model
 
 import (
 	"log"
-	"os"
 
+	"github.com/culdo/bbs-restful-api/config"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -17,7 +17,7 @@ func CreateAdmin() {
 		log.Println("use previous created Admin")
 		return
 	}
-	adminPass, err := bcrypt.GenerateFromPassword([]byte(os.Getenv("ADMIN_PASSWD")), bcrypt.DefaultCost)
+	adminPass, err := bcrypt.GenerateFromPassword([]byte(config.AdminPasswd), bcrypt.DefaultCost)
 	if err != nil {
 		panic(err.Error())
 	}

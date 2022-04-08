@@ -1,6 +1,12 @@
 package config
 
+import "os"
+
 const (
 	IdentityKey = "id"
-	Key         = "my_secret_key"
+)
+var ( 
+	JWTKey     = os.Getenv("JWT_KEY")
+	DatabaseUrl = os.Getenv("DATABASE_URL")
+	AdminPasswd = os.Getenv("ADMIN_PASSWD")
 )

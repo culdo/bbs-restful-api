@@ -2,8 +2,8 @@ package model
 
 import (
 	"errors"
-	"os"
 
+	"github.com/culdo/bbs-restful-api/config"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,7 +12,7 @@ import (
 var DB *gorm.DB
 
 func Init() *gorm.DB {
-	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")))
+	db, err := gorm.Open(postgres.Open(config.DatabaseUrl))
 	if err != nil {
 		panic(err.Error())
 	}
