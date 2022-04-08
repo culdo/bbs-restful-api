@@ -1,4 +1,5 @@
 # BBS RESTful API
+使用Github Action及Heroku部屬於[bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/)
 # 功能
 ## 使用者
 1. 可以瀏覽目前的留言
@@ -44,7 +45,7 @@
 
 # To-do-list
 - [x] Use bcrypt on password accessing
-- [ ] Deploy on cloud service
+- [x] Deploy on cloud service
 
 # Dependency
 * gin
