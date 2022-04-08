@@ -2,15 +2,16 @@
 使用Github Action及Heroku部屬於[bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/)
 # 功能
 ## 使用者
-1. 可以瀏覽目前的留言
+1. 可以瀏覽目前的留言(不包含隱藏留言)
 2. 可以註冊帳號
 3. 可以登入
 4. 登入後可以留言
 5. 登入後回覆特定留言
 ## 管理員
-1. 可以看到目前的留言並搜尋留言內容
-2. 可以隱藏/顯示留言
-3. 可以將使用者停權/解封
+1. 可以瀏覽目前的留言(包含隱藏留言)
+2. 可以看到目前的留言並搜尋留言內容
+3. 可以隱藏/顯示留言
+4. 可以將使用者停權/解封
 # Develop
 ```bash
 export DATABASE_URL="your_postgredb_url"
