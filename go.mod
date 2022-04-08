@@ -1,6 +1,7 @@
 module github.com/culdo/bbs-restful-api
 
 go 1.15
+// +heroku goVersion go1.15
 
 require (
 	github.com/appleboy/gin-jwt/v2 v2.8.0
