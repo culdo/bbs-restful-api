@@ -12,7 +12,11 @@
 2. 可以隱藏/顯示留言
 3. 可以將使用者停權/解封
 # Develop
-`go run main.go`
+```bash
+export DATABASE_URL="postgres://your_database_url"
+export ADMIN_PASSWD="bbs_admin_password_you_want"
+go run main.go
+```
 # Test Case
 * $token請帶入`/login`回傳之JWT Token進行測試
 ## 使用者
