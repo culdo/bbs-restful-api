@@ -1,5 +1,5 @@
 # BBS RESTful API
-使用Github Action及Heroku部屬於[bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/)
+Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/)
 # 功能
 ## 使用者
 1. 可以瀏覽目前的留言(不包含隱藏留言)
@@ -9,7 +9,7 @@
 5. 登入後回覆特定留言
 ## 管理員
 1. 可以瀏覽目前的留言(包含隱藏留言)
-2. 可以看到目前的留言並搜尋留言內容
+2. 可以搜尋留言內容
 3. 可以隱藏/顯示留言
 4. 可以將使用者停權/解封
 # Develop
@@ -49,6 +49,8 @@ go run main.go
 ### 搜尋留言內容，回傳留言
 `curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?keyword="123"`
 
+# CI, CD
+使用Github Action部屬於Heroku
 # To-do-list
 - [x] Use bcrypt on password accessing
 - [x] Deploy on cloud service
