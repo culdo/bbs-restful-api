@@ -25,7 +25,7 @@ func SetupRouter() *gin.Engine {
 	router.POST("/login", authMiddleware.LoginHandler)
 	router.POST("/register", controller.RegisterEndpoint)
 
-	router.GET("/posts", middleware.DoHidePost(true), controller.FetchAllPost)
+	router.GET("/posts", middleware.DoHidePost(true), controller.FetchPosts)
 	router.POST("/posts", authMiddleware.MiddlewareFunc(), controller.CreatePost)
 	router.POST("/posts/:id/comments", authMiddleware.MiddlewareFunc(), controller.CreateComment)
 
@@ -33,7 +33,7 @@ func SetupRouter() *gin.Engine {
 	admin.Use(authMiddleware.MiddlewareFunc())
 	admin.Use(middleware.IsAdmin())
 	{
-		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchAllPost)
+		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchPosts)
 		admin.GET("/posts/search", controller.SearchAllPost)
 		admin.GET("/posts/:id/hide", controller.HidePost)
 		admin.GET("/posts/:id/unhide", controller.UnhidePost)

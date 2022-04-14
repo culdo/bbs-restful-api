@@ -22,14 +22,14 @@ go run main.go
 # Test Case
 * $token請帶入`/login`回傳之JWT Token進行測試
 ## 使用者
+### 取得所有留言(不包含隱藏留言)
+`curl -i -X GET -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
 ### 註冊
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/register`
 ### 登入
 `curl -i -X POST -d '{"username":"test_login","password":"test_password"}' -H 'Content-Type: application/json' 127.0.0.1:8080/login`
 ### 發布留言
 `curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
-### 取得所有留言(不包含隱藏留言)
-`curl -i -X GET -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
 ### 回覆留言(id = 2)
 `curl -i -X POST -d '{"content":"test_comment"}' -H "Authorization: Bearer $token" -H 'Content-Type: application/json' 127.0.0.1:8080/post/2/comments`
 

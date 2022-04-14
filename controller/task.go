@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	jwtapple2 "github.com/appleboy/gin-jwt/v2"
 	"github.com/culdo/bbs-restful-api/config"
@@ -50,10 +51,15 @@ func CreateComment(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully!", "Post": post})
 }
 
-func FetchAllPost(c *gin.Context) {
-
+func FetchPosts(c *gin.Context) {
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	offset := (page - 1) * config.PageItemNum
 	doHidePost, _ := c.Get("doHidePost")
-	posts, err := model.FetchAllPost(doHidePost.(bool))
+	posts, err := model.FetchPosts(doHidePost.(bool), config.PageItemNum, offset)
 	if err != nil{
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

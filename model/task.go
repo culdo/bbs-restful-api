@@ -47,14 +47,15 @@ func HidePost(pid interface{}, hidden bool) error {
 	return nil
 }
 
-func FetchAllPost(doHidePost bool) ([]Post, error) {
+func FetchPosts(doHidePost bool, limit int, offset int) ([]Post, error) {
 	var posts []Post
+	tx := DB.Limit(limit).Offset(offset).Preload("Comments")
 	if doHidePost {
-		if err := DB.Preload("Comments").Where("hidden = ?", false).Find(&posts).Error; err != nil {
+		if err := tx.Where("hidden = ?", false).Find(&posts).Error; err != nil {
 			return nil, err
 		}
 	} else {
-		if err := DB.Preload("Comments").Find(&posts).Error; err != nil {
+		if err := tx.Find(&posts).Error; err != nil {
 			return nil, err
 		}
 	}

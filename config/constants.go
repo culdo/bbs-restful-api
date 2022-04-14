@@ -4,6 +4,7 @@ import "os"
 
 const (
 	IdentityKey = "id"
+	PageItemNum = 30
 )
 var ( 
 	JWTKey     = os.Getenv("JWT_KEY")
