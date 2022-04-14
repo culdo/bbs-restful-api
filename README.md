@@ -20,7 +20,7 @@ export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
 # Test
-* go test ./test
+`go test ./test`
 # API
 ## 使用者
 ### 取得所有留言(不包含隱藏留言)
