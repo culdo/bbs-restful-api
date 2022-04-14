@@ -9,7 +9,7 @@ import (
 )
 
 func CreateAdmin() {
-	err := DB.Where("id = ?", 1).First(&User{}).Error
+	_, err := FindUserByName("admin")
 	if err != nil && err != gorm.ErrRecordNotFound {
 		panic(err.Error())
 	}

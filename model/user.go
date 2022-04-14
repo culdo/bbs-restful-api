@@ -9,14 +9,14 @@ import (
 )
 
 func Register(userReq UserRequest) error {
-	var user User
-	err := DB.Where("username = ?", userReq.Username).First(&user).Error
+	userCheck, err := FindUserByName(userReq.Username)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
-	if user.ID > 0 {
+	if userCheck != nil {
 		return errors.New("User already exists")
 	}
+	var user User
 	user.Username = userReq.Username
 	user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
 	if err != nil{

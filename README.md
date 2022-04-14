@@ -19,8 +19,9 @@ export JWT_KEY="JWT_secret_key_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
-# Test Case
-* $token請帶入`/login`回傳之JWT Token進行測試
+# Test
+* go test ./test
+# API
 ## 使用者
 ### 取得所有留言(不包含隱藏留言)
 `curl -i -X GET -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
@@ -54,6 +55,7 @@ go run main.go
 # To-do-list
 - [x] Use bcrypt on password accessing
 - [x] Deploy on cloud service
+- [x] Testing
 
 # Dependency
 * gin
