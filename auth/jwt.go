@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"net/http"
+	"strings"
 	"time"
 
 	jwtapple2 "github.com/appleboy/gin-jwt/v2"
@@ -22,9 +24,13 @@ func SetupAuth() (*jwtapple2.GinJWTMiddleware, error) {
 		Authorizator:    authorizator,
 		Unauthorized:    unauthorized,
 		LoginResponse:   loginResponse,
-		TokenLookup:     "header: Authorization, query: token, cookie: jwtapple2",
+		TokenLookup:     "header: Authorization, query: token, cookie: token",
 		TokenHeadName:   "Bearer",
 		TimeFunc:        time.Now,
+		SendCookie:       true,
+		CookieHTTPOnly:   true,
+		CookieName:       "token",
+		CookieSameSite:   http.SameSiteDefaultMode,
 	})
 
 	return authMiddleware, err
@@ -42,7 +48,10 @@ func payload(data interface{}) jwtapple2.MapClaims {
 
 func identityHandler(c *gin.Context) interface{} {
 	claims := jwtapple2.ExtractClaims(c)
-	user, _ := model.FindUserByID(claims[config.IdentityKey])
+	user, err := model.FindUserByID(claims[config.IdentityKey])
+	if err!=nil {
+		return false
+	}
 
 	return *user
 }
@@ -70,7 +79,10 @@ func authenticator(c *gin.Context) (interface{}, error) {
 }
 
 func authorizator(data interface{}, c *gin.Context) bool {
-	if v, ok := data.(model.User); ok && v.ID != 0 {
+	if v, ok := data.(model.User); ok && v.ID > 0 {
+		if strings.HasPrefix(c.FullPath(), "/admin") && v.Username != "admin" {
+			return false
+		}
 		return true
 	}
 

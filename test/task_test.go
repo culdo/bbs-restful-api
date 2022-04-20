@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -13,21 +14,33 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 
+	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/migration"
 	"github.com/culdo/bbs-restful-api/model"
 	"github.com/culdo/bbs-restful-api/router"
 )
+var testRouter *gin.Engine
+
+func clean(db *gorm.DB) {
+	db.Exec("DELETE FROM users")
+	db.Exec("DELETE FROM posts")
+	db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
+	db.Exec("ALTER SEQUENCE posts_id_seq RESTART WITH 1")
+}
 
 func TestMain(m *testing.M) {
 	db := model.Init()
 	migration.Migrate(db)
+	// clean(db)
 	model.CreateAdmin()
+	testRouter = router.SetupRouter()
 	
-	os.Exit(m.Run())
+	m.Run()
+	
+	os.Exit(0)
 }
 
 func TestRegister(t *testing.T) {
-	router := router.SetupRouter()
 
 	w := httptest.NewRecorder()
 	var userReq model.UserRequest 
@@ -39,25 +52,25 @@ func TestRegister(t *testing.T) {
 
 	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	router.ServeHTTP(w, req)
+	testRouter.ServeHTTP(w, req)
 	
-	var m map[string]interface{}
+	var resp map[string]interface{}
 	if err == gorm.ErrRecordNotFound {
 		assert.Equal(t, http.StatusCreated, w.Code)
-		if err := json.NewDecoder(w.Body).Decode(&m); err!=nil {
+		if err := json.NewDecoder(w.Body).Decode(&resp); err!=nil {
 			log.Print(err.Error())
 		}
-		assert.Equal(t, "User created successfully", m["message"])
+		assert.Equal(t, "User created successfully", resp["message"])
 	} else {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		if err := json.NewDecoder(w.Body).Decode(&m); err!=nil {
+		if err := json.NewDecoder(w.Body).Decode(&resp); err!=nil {
 			log.Print(err.Error())
 		}
-		assert.Equal(t, "User already exists", m["error"])
+		assert.Equal(t, "User already exists", resp["error"])
 	}
 }
 
-func login(router *gin.Engine, username string, password string) (*httptest.ResponseRecorder, error) {
+func login(username string, password string) (map[string] string, *httptest.ResponseRecorder, error) {
 	w := httptest.NewRecorder()
 	var userReq model.UserRequest 
 	userReq.Username = username
@@ -65,79 +78,109 @@ func login(router *gin.Engine, username string, password string) (*httptest.Resp
 	var jsonStr, _ = json.Marshal(userReq)
 
 	if _, err := model.FindUserByName(userReq.Username);err!=nil{
-		return nil, err
+		return nil, nil, err
 	}
 
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	router.ServeHTTP(w, req)
-	return w, nil
+	testRouter.ServeHTTP(w, req)
+	var resp map[string] string
+	if err := json.NewDecoder(w.Body).Decode(&resp); err!=nil {
+		log.Print(err.Error())
+	}
+	return resp, w, nil
 }
 
 func TestLogin(t *testing.T) {
-	router := router.SetupRouter()
-	w, err := login(router, "test_name", "test_pass")
-	
-	
-	var m map[string] string
-	if err := json.NewDecoder(w.Body).Decode(&m); err!=nil {
-		log.Print(err.Error())
-	}
+	resp, w, err := login("test_name", "test_pass")
+
 	if err == gorm.ErrRecordNotFound {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.Equal(t, "record not found", m["message"])
+		assert.Equal(t, "record not found", resp["message"])
 	} else {
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.GreaterOrEqual(t, len(m["expire"]), 30)
-		assert.Equal(t, 145, len(m["token"]))
+		assert.GreaterOrEqual(t, len(resp["expire"]), 30)
+		assert.GreaterOrEqual(t, len(resp["token"]), 140)
 	}
 
 }
 
-func TestCreatePost(t *testing.T) {
-	router := router.SetupRouter()
-	loginResp, err := login(router, "test_name", "test_pass")
-	if err != nil {
-		log.Print(err.Error())
+func TestAdminLogin(t *testing.T) {
+	resp, w, err := login("admin", config.AdminPasswd)
+	
+	if err == gorm.ErrRecordNotFound {
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, "record not found", resp["message"])
+	} else {
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.GreaterOrEqual(t, len(resp["expire"]), 30)
+		assert.GreaterOrEqual(t, len(resp["token"]), 140)
 	}
-	var m map[string] interface{}
-	if err := json.NewDecoder(loginResp.Body).Decode(&m); err!=nil {
-		log.Print(err.Error())
-	}
-	token := m["token"].(string)
+
+}
+
+func createPost(loginResp map[string] string, title string, content string) (map[string] interface{}, *httptest.ResponseRecorder, error) {
+	token := loginResp["token"]
 	postResp := httptest.NewRecorder()
 
 	var postReq model.PostRequest 
-	postReq.Title = "test_title"
-	postReq.Content = "test_content"
+	postReq.Title = title
+	postReq.Content = content
 	var jsonStr, _ = json.Marshal(postReq)
 
 	req, _ := http.NewRequest("POST", "/posts", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
-	router.ServeHTTP(postResp, req)
+	testRouter.ServeHTTP(postResp, req)
 	
-	if err := json.NewDecoder(postResp.Body).Decode(&m); err!=nil {
+	var resp map[string] interface{}
+	if err := json.NewDecoder(postResp.Body).Decode(&resp); err!=nil {
+		log.Print(err.Error())
+	}
+	return resp, postResp, nil
+}
+func TestCreatePost(t *testing.T) {
+	loginResp, _, err := login("test_name", "test_pass")
+	if err != nil {
+		log.Print(err.Error())
+	}
+	title := "test_title"
+	content := "test_content"
+	resp, postResp, err := createPost(loginResp, title, content)
+	if err != nil {
 		log.Print(err.Error())
 	}
 
 	assert.Equal(t, http.StatusCreated, postResp.Code)
-	assert.Equal(t, postReq.Title, m["Post"].(map[string]interface{})["title"])
-	assert.Equal(t, postReq.Content, m["Post"].(map[string]interface{})["content"])
-
+	assert.Equal(t, title, resp["Post"].(map[string]interface{})["title"])
+	assert.Equal(t, content, resp["Post"].(map[string]interface{})["content"])
 }
 
-func TestFetchPosts(t *testing.T) {
-	router := router.SetupRouter()
-	
+func TestHidePost(t *testing.T) {
+	resp, _, err := login("admin", config.AdminPasswd)
+	// resp, _, err := login("test_name", "test_pass")
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	pid := 1
+	resp, w, err := hidePost(resp, pid)
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	assert.Equal(t, http.StatusCreated, w.Code)
+	assert.Equal(t, "Post is hidden!", resp["message"])
+	assert.Equal(t, fmt.Sprint(pid), resp["pid"])
+}
+
+func TestUserFetchPosts(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/posts", nil)
 	q := req.URL.Query()
 	q.Add("page", "1")
-	router.ServeHTTP(w, req)
+	testRouter.ServeHTTP(w, req)
 	
-	var m map[string] interface{}
-	if err := json.NewDecoder(w.Body).Decode(&m); err!=nil {
+	var resp map[string] interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err!=nil {
 		log.Print(err.Error())
 	}
 
@@ -147,10 +190,42 @@ func TestFetchPosts(t *testing.T) {
 	}
 	if len(posts)>0{
 		assert.Equal(t, 200, w.Code)
-		assert.Equal(t, len(m["data"].([]interface{})), len(posts))
+		assert.Equal(t, len(resp["data"].([]interface{})), len(posts))
 	} else {
 		assert.Equal(t, 404, w.Code)
-		assert.Equal(t, "No Posts found", m["message"])
+		assert.Equal(t, "No Posts found", resp["message"])
+	}
+
+}
+
+func TestAdminFetchPosts(t *testing.T) {
+	loginResp, _, err := login("admin", config.AdminPasswd)
+	if err!=nil {
+		log.Print(err.Error())
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/admin/posts", nil)
+	req.Header.Set("Authorization", "Bearer "+loginResp["token"])
+	q := req.URL.Query()
+	q.Add("page", "1")
+	testRouter.ServeHTTP(w, req)
+	
+	var resp map[string] interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err!=nil {
+		log.Print(err.Error())
+	}
+
+	posts, err := model.FetchPosts(false, 30, 0)
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	if len(posts)>0{
+		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, len(resp["data"].([]interface{})), len(posts))
+	} else {
+		assert.Equal(t, 404, w.Code)
+		assert.Equal(t, "No Posts found", resp["message"])
 	}
 
 }

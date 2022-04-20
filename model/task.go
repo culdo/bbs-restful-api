@@ -40,13 +40,6 @@ func FindPost(pid interface{}) (*Post, error) {
 	return &post, nil
 }
 
-func HidePost(pid interface{}, hidden bool) error {
-	if err := DB.Model(&Post{}).Where("id = ?", pid).Update("hidden", hidden).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
 func FetchPosts(doHidePost bool, limit int, offset int) ([]Post, error) {
 	var posts []Post
 	tx := DB.Limit(limit).Offset(offset).Preload("Comments")
@@ -76,21 +69,6 @@ func FindUserByName(name interface{}) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func ActivateUser(uid interface{}, active bool) error {
-	if err := DB.Model(&User{}).Where("id = ?", uid).Update("active", active).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-func FindAdmin(uid interface{}) (*User, error) {
-	var admin User
-	if err := DB.Where("id = ?", uid).First(&admin, "username = ?", "admin").Error; err != nil {
-		return nil, err
-	}
-	return &admin, nil
 }
 
 func CreateComment(pid interface{}, commentReq CommentRequest, uid uint) (*Post, error) {

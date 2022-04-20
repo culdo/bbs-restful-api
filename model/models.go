@@ -11,7 +11,7 @@ type UserRequest struct {
 
 type User struct {
 	gorm.Model
-	Username string
+	Username string `gorm:"uniqueIndex"`
 	HashedPassword []byte
 	Active bool `gorm:"default:true"`
 }

@@ -21,6 +21,8 @@ go run main.go
 ```
 # Test
 `go test ./test`
+# Delopy on Heroku
+Set `DATABASE_URL`, `JWT_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
 # API
 ## 使用者
 ### 取得所有留言(不包含隱藏留言)

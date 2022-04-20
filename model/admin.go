@@ -27,3 +27,27 @@ func CreateAdmin() {
 	}
 	log.Println("admin created")
 }
+
+func HidePost(pid interface{}, hidden bool) error {
+	var post Post
+	if err := DB.Where("id = ?", pid).First(&post).Error; err != nil {
+		return err
+	}
+	post.Hidden = hidden
+	if err := DB.Save(&post).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func ActivateUser(uid interface{}, active bool) error {
+	var user User
+	if err := DB.Where("id = ?", uid).First(&user).Error; err != nil {
+		return err
+	}
+	user.Active = active
+	if err := DB.Save(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}

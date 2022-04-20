@@ -26,12 +26,14 @@ func SetupRouter() *gin.Engine {
 	router.POST("/register", controller.RegisterEndpoint)
 
 	router.GET("/posts", middleware.DoHidePost(true), controller.FetchPosts)
-	router.POST("/posts", authMiddleware.MiddlewareFunc(), controller.CreatePost)
-	router.POST("/posts/:id/comments", authMiddleware.MiddlewareFunc(), controller.CreateComment)
+	router.Use(authMiddleware.MiddlewareFunc()) 
+	{
+		router.POST("/posts", controller.CreatePost)
+		router.POST("/posts/:id/comments", controller.CreateComment)
+	}
 
 	admin := router.Group("/admin")
 	admin.Use(authMiddleware.MiddlewareFunc())
-	admin.Use(middleware.IsAdmin())
 	{
 		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchPosts)
 		admin.GET("/posts/search", controller.SearchAllPost)
