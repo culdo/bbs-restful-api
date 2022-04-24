@@ -18,7 +18,6 @@ import (
 func setup() *gin.Engine {
 	db := model.Init()
 	migration.Migrate(db)
-	model.CreateAdmin()
 	
 	router := gin.Default()
 	router.POST("/register", RegisterEndpoint)
@@ -27,7 +26,7 @@ func setup() *gin.Engine {
 
 func TestRegister(t *testing.T) {
 	testRouter := setup()
-	
+
 	w := httptest.NewRecorder()
 	var userReq model.UserRequest 
 	userReq.Username = "test_name"

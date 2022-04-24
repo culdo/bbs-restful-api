@@ -11,7 +11,7 @@ var (
 	
 	DatabaseUrl = os.Getenv("DATABASE_URL")
 	AdminPasswd = os.Getenv("ADMIN_PASSWD")
-	SessionStoreSecret = os.Getenv("STORE_SECRET")
+	SessionKey = os.Getenv("SESSION_KEY")
 
 	OAuthClientID = os.Getenv("OAUTH_CLIENT_ID")
 	OAuthClientSecret = os.Getenv("OAUTH_CLIENT_SECRET")

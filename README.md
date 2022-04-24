@@ -15,7 +15,7 @@ Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/
 # Develop
 ```bash
 export DATABASE_URL="your_postgredb_url"
-export STORE_SECRET="session_store_secret_you_want"
+export SESSION_KEY="session_store_secret_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```

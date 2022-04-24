@@ -13,7 +13,7 @@ import (
 )
 
 func Session(name string) gin.HandlerFunc {
-	return sessions.Sessions(name, cookie.NewStore([]byte(config.SessionStoreSecret)))
+	return sessions.Sessions(name, cookie.NewStore([]byte(config.SessionKey)))
 }
 
 
