@@ -20,7 +20,7 @@ export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
 # Test
-`go test ./...`
+`go test -count=1 ./...`
 # Delopy on Heroku
 Set `DATABASE_URL`, `JWT_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
 # API
