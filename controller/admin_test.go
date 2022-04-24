@@ -12,6 +12,7 @@ import (
 	"github.com/culdo/bbs-restful-api/auth"
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/middleware"
+	"github.com/culdo/bbs-restful-api/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -44,6 +45,7 @@ func (s *AdminTestSuite) adminRunTask(name string, subId int) (map[string] inter
 	postResp := httptest.NewRecorder()
 	taskName := strings.Split(name, " ")[0]
 	taskType := strings.Split(name, " ")[1]
+
 	req, _ := http.NewRequest("GET", "/admin/"+taskType+"s/"+fmt.Sprint(subId)+"/"+taskName, nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
@@ -63,6 +65,10 @@ func (s *AdminTestSuite)TestHidePost() {
 	if err!=nil {
 		log.Print(err.Error())
 	}
+	testPost := &model.Post{}
+	testPost.Title = "test_title"
+	testPost.Content = "test_content"
+	model.Save(testPost)
 	pid := 1
 	resp, err := s.adminRunTask("hide post", pid)
 	if err!=nil {

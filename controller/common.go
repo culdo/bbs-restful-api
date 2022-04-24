@@ -47,12 +47,12 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	post, err := model.CreateComment(pid, comment_req, uid)
+	_, err := model.CreateComment(pid, comment_req, uid)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully!", "Post": post})
+	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully!"})
 }
 
 func FetchPosts(c *gin.Context) {

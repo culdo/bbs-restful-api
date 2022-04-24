@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -81,8 +82,10 @@ func clean(db *gorm.DB) {
 	stmt := `DO $$
 		BEGIN
 		DELETE FROM users;
+		DELETE FROM comments;
 		DELETE FROM posts;
 		ALTER SEQUENCE users_id_seq RESTART WITH 1;
+		ALTER SEQUENCE comments_id_seq RESTART WITH 1;
 		ALTER SEQUENCE posts_id_seq RESTART WITH 1;
 		END
         $$;`
@@ -96,20 +99,20 @@ func (s *BaseTestSuite)login(username string, password string) error {
 	userReq.Password = password
 	var jsonStr, _ = json.Marshal(userReq)
 
-	if _, err := model.FindUserByName(userReq.Username);err!=nil{
-		return err
-	}
+
+	_, err := model.FindUserByName(userReq.Username)
 
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	s.testRouter.ServeHTTP(w, req)
+	log.Print(w.Body.String())
 	if err := json.NewDecoder(w.Body).Decode(&s.loginResp); err!=nil {
 		log.Print(err.Error())
 	}
 	s.loginResp["cookie"] = w.Header().Get("Set-Cookie")
 	s.loginResp["code"] = w.Code
 	
-	return nil
+	return err
 }
 
 func (s *CommonTestSuite)TestLogin() {
@@ -117,7 +120,7 @@ func (s *CommonTestSuite)TestLogin() {
 
 	if err == gorm.ErrRecordNotFound {
 		assert.Equal(s.T(), http.StatusUnauthorized, s.loginResp["code"])
-		assert.Equal(s.T(), "record not found", s.loginResp["message"])
+		assert.Equal(s.T(), "Login failed", s.loginResp["error"])
 	} else {
 		assert.Equal(s.T(), http.StatusOK, s.loginResp["code"])
 		assert.GreaterOrEqual(s.T(), len(s.loginResp["cookie"].(string)), 30)
@@ -127,14 +130,9 @@ func (s *CommonTestSuite)TestLogin() {
 
 func (s *CommonTestSuite)TestAdminLogin() {
 	err := s.login("admin", config.AdminPasswd)
-	
-	if err == gorm.ErrRecordNotFound {
-		assert.Equal(s.T(), http.StatusUnauthorized, s.loginResp["code"])
-		assert.Equal(s.T(), "record not found", s.loginResp["message"])
-	} else {
-		assert.Equal(s.T(), http.StatusOK, s.loginResp["code"])
-		assert.GreaterOrEqual(s.T(), len(s.loginResp["cookie"].(string)), 30)
-	}
+	assert.Equal(s.T(), err, nil)
+	assert.Equal(s.T(), http.StatusOK, s.loginResp["code"])
+	assert.GreaterOrEqual(s.T(), len(s.loginResp["cookie"].(string)), 30)
 
 }
 
@@ -158,21 +156,73 @@ func (s *CommonTestSuite)createPost(title string, content string) (map[string] i
 	resp["code"] = postResp.Code
 	return resp, nil
 }
-func (s *CommonTestSuite)TestCreatePost() {
-	err := s.login("test_name", "test_pass")
+
+func (s *CommonTestSuite)createComment(pid string, content string) (map[string] interface{}, error) {
+	postResp := httptest.NewRecorder()
+
+	var commentReq model.CommentRequest 
+	commentReq.Content = content
+	var jsonStr, _ = json.Marshal(commentReq)
+
+	req, _ := http.NewRequest("POST", "/posts/"+pid+"/comments", bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
+	s.testRouter.ServeHTTP(postResp, req)
+	
+	var resp map[string] interface{}
+	if err := json.NewDecoder(postResp.Body).Decode(&resp); err!=nil {
+		log.Print(err.Error())
+	}
+	resp["code"] = postResp.Code
+	return resp, nil
+}
+
+func fakeUser() {
+	fakeUser := model.UserRequest{}
+	fakeUser.Username = "test_name"
+	fakeUser.Password = "test_pass"
+	err := model.Register(fakeUser)
 	if err != nil {
 		log.Print(err.Error())
 	}
+}
+func fakePost(id uint) {
+	post := model.Post{}
+	post.ID = id
+	post.Title = "test_title" + fmt.Sprint(post.ID)
+	post.Content = "test_content" + fmt.Sprint(post.ID)
+	err := model.Save(&post)
+	if err != nil {
+		log.Print(err.Error())
+	}
+}
+func (s *CommonTestSuite)TestCreatePost() {
+	fakeUser()
+	err := s.login("test_name", "test_pass")
+	assert.Equal(s.T(), err, nil)
 	title := "test_title"
 	content := "test_content"
 	resp, err := s.createPost(title, content)
 	if err != nil {
 		log.Print(err.Error())
 	}
-
+	
 	assert.Equal(s.T(), http.StatusCreated, resp["code"])
 	assert.Equal(s.T(), title, resp["Post"].(map[string]interface{})["title"])
 	assert.Equal(s.T(), content, resp["Post"].(map[string]interface{})["content"])
+}
+
+func (s *CommonTestSuite)TestCreateComment() {
+	fakeUser()
+	err := s.login("test_name", "test_pass")
+	assert.Equal(s.T(), err, nil)
+	fakePost(11)
+	content := "test_comment_content"
+	resp, err := s.createComment("11",content)
+	log.Print(resp["post"])
+	assert.Equal(s.T(), err, nil)
+	assert.Equal(s.T(), http.StatusCreated, resp["code"])
+	assert.Equal(s.T(), "Comment created successfully!", resp["message"])
 }
 
 func (s *CommonTestSuite)TestUserFetchPosts() {

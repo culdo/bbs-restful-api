@@ -32,7 +32,7 @@ func Login(userReq UserRequest) (*User, error) {
 	return user, nil
 }
 
-func FindPost(pid interface{}) (*Post, error) {
+func FindPostByID(pid interface{}) (*Post, error) {
 	var post Post
 	if err := DB.Where("id = ?", pid).Find(&post).Error; err != nil {
 		return nil, err
