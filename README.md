@@ -15,12 +15,12 @@ Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/
 # Develop
 ```bash
 export DATABASE_URL="your_postgredb_url"
-export JWT_KEY="JWT_secret_key_you_want"
+export STORE_SECRET="session_store_secret_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
 # Test
-`go test ./test`
+`go test ./...`
 # Delopy on Heroku
 Set `DATABASE_URL`, `JWT_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
 # API

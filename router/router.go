@@ -1,9 +1,6 @@
 package router
 
 import (
-	"log"
-	"net/http"
-
 	"github.com/culdo/bbs-restful-api/auth"
 	"github.com/culdo/bbs-restful-api/controller"
 	"github.com/culdo/bbs-restful-api/middleware"
@@ -12,28 +9,23 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
-	authMiddleware, err := auth.SetupAuth()
 
-	if err != nil {
-		log.Fatal("JWT Error" + err.Error())
-	}
+	router.Use(auth.Session("bbssession"))
+	router.GET("/", controller.Index)
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome to my BBS App"})
-	})
-
-	router.POST("/login", authMiddleware.LoginHandler)
+	router.POST("/login", auth.Login)
+	router.GET("/logout", auth.Logout)
 	router.POST("/register", controller.RegisterEndpoint)
 
 	router.GET("/posts", middleware.DoHidePost(true), controller.FetchPosts)
-	router.Use(authMiddleware.MiddlewareFunc()) 
+	router.Use(auth.AuthRequired("user")) 
 	{
 		router.POST("/posts", controller.CreatePost)
 		router.POST("/posts/:id/comments", controller.CreateComment)
 	}
 
 	admin := router.Group("/admin")
-	admin.Use(authMiddleware.MiddlewareFunc())
+	admin.Use(auth.AuthRequired("admin"))
 	{
 		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchPosts)
 		admin.GET("/posts/search", controller.SearchAllPost)
@@ -42,9 +34,6 @@ func SetupRouter() *gin.Engine {
 		admin.GET("/users/:id/ban", controller.BanUser)
 		admin.GET("/users/:id/activate", controller.ActivateUser)
 	}
-
-	authorization := router.Group("/auth")
-	authorization.GET("/refresh_token", authMiddleware.RefreshHandler)
 
 	return router
 }

@@ -4,16 +4,20 @@ import (
 	"net/http"
 	"strconv"
 
-	jwtapple2 "github.com/appleboy/gin-jwt/v2"
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
-func CreatePost(c *gin.Context) {
-	claims := jwtapple2.ExtractClaims(c)
+func Index(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Welcome to my BBS APP"})
+}
 
-	uid := uint(claims[config.IdentityKey].(float64))
+func CreatePost(c *gin.Context) {
+	session := sessions.Default(c)
+
+	uid := session.Get(config.IdentityKey).(uint)
 
 	var postReq model.PostRequest
 	if err := c.ShouldBindJSON(&postReq); err != nil {
@@ -33,8 +37,8 @@ func CreatePost(c *gin.Context) {
 
 func CreateComment(c *gin.Context) {
 	pid := c.Param("id")
-	claims := jwtapple2.ExtractClaims(c)
-	uid := uint(claims[config.IdentityKey].(float64))
+	session := sessions.Default(c)
+	uid := session.Get(config.IdentityKey).(uint)
 
 
 	var comment_req model.CommentRequest

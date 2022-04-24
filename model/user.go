@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"log"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -25,6 +24,5 @@ func Register(userReq UserRequest) error {
 	if err := Save(&user); err != nil{
 		return err
 	}
-	log.Println(user)
 	return nil
 }

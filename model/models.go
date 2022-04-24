@@ -3,7 +3,6 @@ package model
 import (
 	"gorm.io/gorm"
 )
-
 type UserRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
