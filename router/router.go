@@ -29,10 +29,10 @@ func SetupRouter() *gin.Engine {
 	{
 		admin.GET("/posts", middleware.DoHidePost(false), controller.FetchPosts)
 		admin.GET("/posts/search", controller.SearchAllPost)
-		admin.GET("/posts/:id/hide", controller.HidePost)
-		admin.GET("/posts/:id/unhide", controller.UnhidePost)
-		admin.GET("/users/:id/ban", controller.BanUser)
-		admin.GET("/users/:id/activate", controller.ActivateUser)
+		admin.POST("/posts/:id/hide", controller.HidePost)
+		admin.POST("/posts/:id/unhide", controller.UnhidePost)
+		admin.POST("/users/:id/ban", controller.BanUser)
+		admin.POST("/users/:id/activate", controller.ActivateUser)
 	}
 
 	return router

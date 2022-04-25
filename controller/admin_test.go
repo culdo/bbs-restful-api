@@ -34,10 +34,10 @@ func (s *AdminTestSuite) setupTestRouter(){
 	{
 		admin.GET("/posts", middleware.DoHidePost(false), FetchPosts)
 		admin.GET("/posts/search", SearchAllPost)
-		admin.GET("/posts/:id/hide", HidePost)
-		admin.GET("/posts/:id/unhide", UnhidePost)
-		admin.GET("/users/:id/ban", BanUser)
-		admin.GET("/users/:id/activate", ActivateUser)
+		admin.POST("/posts/:id/hide", HidePost)
+		admin.POST("/posts/:id/unhide", UnhidePost)
+		admin.POST("/users/:id/ban", BanUser)
+		admin.POST("/users/:id/activate", ActivateUser)
 	}
 }
 
@@ -46,7 +46,7 @@ func (s *AdminTestSuite) adminRunTask(name string, subId int) (map[string] inter
 	taskName := strings.Split(name, " ")[0]
 	taskType := strings.Split(name, " ")[1]
 
-	req, _ := http.NewRequest("GET", "/admin/"+taskType+"s/"+fmt.Sprint(subId)+"/"+taskName, nil)
+	req, _ := http.NewRequest("POST", "/admin/"+taskType+"s/"+fmt.Sprint(subId)+"/"+taskName, nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
 	s.testRouter.ServeHTTP(postResp, req)
