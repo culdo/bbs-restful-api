@@ -13,6 +13,10 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '^1.18'
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres createuser -s runner
       - name: Run Unit Tests
         run: |
           go test -count=1 ./...
