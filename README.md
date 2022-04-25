@@ -12,14 +12,14 @@ Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/
 2. 可以搜尋留言內容
 3. 可以隱藏/顯示留言
 4. 可以將使用者停權/解封
-# Develop
+# Developing
 ```bash
 export DATABASE_URL="your_postgredb_url"
 export SESSION_KEY="session_store_secret_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
-# Test
+# Testing
 `go test -count=1 ./...`
 # Delopy on Heroku
 Set `DATABASE_URL`, `SESSION_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
