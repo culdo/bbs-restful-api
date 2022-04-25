@@ -21,6 +21,8 @@ go run main.go
 ```
 # Testing
 `go test -count=1 ./...`
+# Testing with GitHub Action
+Check out `.github/workflows/main.yaml` to see how it works
 # Delopy on Heroku
 Set `DATABASE_URL`, `SESSION_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
 # API
