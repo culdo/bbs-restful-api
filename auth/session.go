@@ -9,7 +9,6 @@ import (
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
 	"github.com/gin-gonic/gin"
-	goauth "google.golang.org/api/oauth2/v2"
 )
 
 func Session(name string) gin.HandlerFunc {
@@ -32,17 +31,22 @@ func AuthRequired(userType string) gin.HandlerFunc {
 	}
 }
 
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // login is a handler that parses a form and checks for specific data
 func Login(c *gin.Context) {
 	session := sessions.Default(c)
 
-	var loginVals model.UserRequest
+	var loginVals LoginRequest
 	if err := c.ShouldBind(&loginVals); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameters can't be empty"})
 		return
 	}
 
-	user, err := model.Login(loginVals)
+	user, err := model.Login(loginVals.Username, loginVals.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Login failed"})
 		return 
@@ -79,18 +83,4 @@ func Logout(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
-}
-
-func AutoRegister(c *gin.Context) {
-	userInfo, _ := c.Get("user")
-	var userReq model.UserRequest
-	userReq.Username = userInfo.(goauth.Userinfo).Id
-	userReq.Password = ""
-
-	if err := model.Register(userReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }

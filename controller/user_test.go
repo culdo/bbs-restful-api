@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/culdo/bbs-restful-api/auth"
 	"github.com/culdo/bbs-restful-api/migration"
 	"github.com/culdo/bbs-restful-api/model"
 	"github.com/gin-gonic/gin"
@@ -26,9 +27,10 @@ func setup() *gin.Engine {
 
 func TestRegister(t *testing.T) {
 	testRouter := setup()
+	defer clean(model.DB)
 
 	w := httptest.NewRecorder()
-	var userReq model.UserRequest 
+	var userReq auth.LoginRequest 
 	userReq.Username = "test_name"
 	userReq.Password = "test_pass"
 	var jsonStr, _ = json.Marshal(userReq)

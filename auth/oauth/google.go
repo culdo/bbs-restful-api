@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"github.com/culdo/bbs-restful-api/config"
+	"github.com/culdo/bbs-restful-api/model"
 	"github.com/gin-contrib/sessions"
 
 	"github.com/gin-gonic/gin"
@@ -81,6 +82,17 @@ func LoginHandler(ctx *gin.Context) {
 
 func GetLoginURL(state string) string {
 	return conf.AuthCodeURL(state)
+}
+
+func AutoRegister(c *gin.Context) {
+	userInfo, _ := c.Get("user")
+	
+	if err := model.Register(userInfo.(goauth.Userinfo).Id, ""); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }
 
 func Auth() gin.HandlerFunc {

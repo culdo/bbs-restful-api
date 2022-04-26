@@ -6,6 +6,7 @@ import (
 	"time"
 
 	jwtapple2 "github.com/appleboy/gin-jwt/v2"
+	"github.com/culdo/bbs-restful-api/auth"
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
 	"github.com/gin-gonic/gin"
@@ -57,12 +58,12 @@ func identityHandler(c *gin.Context) interface{} {
 }
 
 func authenticator(c *gin.Context) (interface{}, error) {
-	var loginVals model.UserRequest
+	var loginVals auth.LoginRequest
 	if err := c.ShouldBind(&loginVals); err != nil {
 		return nil, jwtapple2.ErrMissingLoginValues
 	}
 
-	user, err := model.Login(loginVals)
+	user, err := model.Login(loginVals.Username, loginVals.Password)
 	if err != nil {
 		return nil, err
 	}

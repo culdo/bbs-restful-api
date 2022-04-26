@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Register(userReq UserRequest) error {
-	userCheck, err := FindUserByName(userReq.Username)
+func Register(username, password string) error {
+	userCheck, err := FindUserByName(username)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
@@ -16,8 +16,8 @@ func Register(userReq UserRequest) error {
 		return errors.New("User already exists")
 	}
 	var user User
-	user.Username = userReq.Username
-	user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
+	user.Username = username
+	user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil{
 		return err
 	}

@@ -6,15 +6,19 @@ import (
 	"github.com/culdo/bbs-restful-api/model"
 	"github.com/gin-gonic/gin"
 )
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 func RegisterEndpoint(c *gin.Context) {
-	var userReq model.UserRequest
+	var userReq RegisterRequest
 	if err := c.ShouldBindJSON(&userReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := model.Register(userReq); err != nil {
+	if err := model.Register(userReq.Username, userReq.Password); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

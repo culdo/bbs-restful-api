@@ -3,10 +3,6 @@ package model
 import (
 	"gorm.io/gorm"
 )
-type UserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
 
 type User struct {
 	gorm.Model
@@ -15,26 +11,18 @@ type User struct {
 	Active bool `gorm:"default:true"`
 }
 
-type PostRequest struct {
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-}
-
 type Post struct {
 	gorm.Model
-	PostRequest
-	Comments []Comment
-	Hidden bool `gorm:"default:false"`
-	UserID   uint
-}
-
-type CommentRequest struct {
-	Content string `json:"content"`
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+	Comments []Comment `json:"comments"`
+	Hidden bool `gorm:"default:false" json:"hidden"`
+	UserID   uint `json:"userid"`
 }
 
 type Comment struct {
 	gorm.Model
-	CommentRequest
-	UserID      uint
-	PostID      uint
+	Content string `json:"content"`
+	UserID      uint `json:"userid"`
+	PostID      uint `json:"postid"`
 }

@@ -24,35 +24,20 @@ import (
 type BaseTestSuite struct {
 	suite.Suite
 	testRouter  *gin.Engine
-	loginResp map[string] interface{}
 }
 
 type BaseTester interface {
-	setupDB()
-	setupBaseRouter()
 	setupTestRouter()
 }
 
-func (s *BaseTestSuite) setupDB() {
+func setupDB() {
 	db := model.Init()
 	migration.Migrate(db)
-	// clean(db)
-	model.CreateAdmin()
-}
-
-func (s *BaseTestSuite) setupBaseRouter() {
-	router := gin.Default()
-
-	router.Use(auth.Session("bbssession"))
-	router.GET("/", Index)
-	router.POST("/login", auth.Login)
-	router.GET("/logout", auth.Logout)
-	s.testRouter = router
+	clean(db)
 }
 
 func SetupBaseTest(bt BaseTester) {
-	bt.setupDB()
-	bt.setupBaseRouter()
+	setupDB()
 	bt.setupTestRouter()
 }
 
@@ -69,13 +54,17 @@ func TestCommon(t *testing.T) {
 }	
 
 func (s *CommonTestSuite) setupTestRouter() {
-	router := s.testRouter
+	router := gin.Default()
+
+	router.Use(auth.Session("bbssession"))
+	router.GET("/", Index)
+	router.POST("/login", auth.Login)
 	router.GET("/posts", middleware.DoHidePost(true), FetchPosts)
-	router.Use(auth.AuthRequired("user")) 
-	{
-		router.POST("/posts", CreatePost)
-		router.POST("/posts/:id/comments", CreateComment)
-	}
+
+	router.POST("/posts", CreatePost)
+	router.POST("/posts/:id/comments", CreateComment)
+	
+	s.testRouter = router
 }
 
 func clean(db *gorm.DB) {
@@ -92,61 +81,59 @@ func clean(db *gorm.DB) {
 	db.Exec(stmt)
 }
 
-func (s *BaseTestSuite)login(username string, password string) error {
+func (s *BaseTestSuite)login(username string, password string) map[string] interface{} {
 	w := httptest.NewRecorder()
-	var userReq model.UserRequest 
+	var userReq auth.LoginRequest 
 	userReq.Username = username
 	userReq.Password = password
 	var jsonStr, _ = json.Marshal(userReq)
-
-
-	_, err := model.FindUserByName(userReq.Username)
 
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	s.testRouter.ServeHTTP(w, req)
 	log.Print(w.Body.String())
-	if err := json.NewDecoder(w.Body).Decode(&s.loginResp); err!=nil {
+	var loginResp map[string] interface{}
+	if err := json.NewDecoder(w.Body).Decode(&loginResp); err!=nil {
 		log.Print(err.Error())
 	}
-	s.loginResp["cookie"] = w.Header().Get("Set-Cookie")
-	s.loginResp["code"] = w.Code
 	
-	return err
+	loginResp["cookie"] = w.Header().Get("Set-Cookie")
+	loginResp["code"] = w.Code
+	
+	return loginResp
 }
 
 func (s *CommonTestSuite)TestLogin() {
-	err := s.login("test_name", "test_pass")
+	model.Register("test_name", "test_pass")
+	loginResp := s.login("test_name", "test_pass")
+	assert.Equal(s.T(), http.StatusOK, loginResp["code"])
+	assert.GreaterOrEqual(s.T(), len(loginResp["cookie"].(string)), 30)
 
-	if err == gorm.ErrRecordNotFound {
-		assert.Equal(s.T(), http.StatusUnauthorized, s.loginResp["code"])
-		assert.Equal(s.T(), "Login failed", s.loginResp["error"])
-	} else {
-		assert.Equal(s.T(), http.StatusOK, s.loginResp["code"])
-		assert.GreaterOrEqual(s.T(), len(s.loginResp["cookie"].(string)), 30)
-	}
-
+	loginResp = s.login("user_noexist", "passnoexist")
+	assert.Equal(s.T(), http.StatusUnauthorized, loginResp["code"])
+	assert.Equal(s.T(), "Login failed", loginResp["error"])
 }
 
 func (s *CommonTestSuite)TestAdminLogin() {
-	err := s.login("admin", config.AdminPasswd)
-	assert.Equal(s.T(), err, nil)
-	assert.Equal(s.T(), http.StatusOK, s.loginResp["code"])
-	assert.GreaterOrEqual(s.T(), len(s.loginResp["cookie"].(string)), 30)
-
+	model.CreateAdmin()
+	loginResp := s.login("admin", config.AdminPasswd)
+	assert.Equal(s.T(), http.StatusOK, loginResp["code"])
+	assert.GreaterOrEqual(s.T(), len(loginResp["cookie"].(string)), 30)
 }
 
 func (s *CommonTestSuite)createPost(title string, content string) (map[string] interface{}, error) {
-	postResp := httptest.NewRecorder()
-
-	var postReq model.PostRequest 
+	loginResp := s.login(fakeUser(10))
+	
+	var postReq PostRequest 
 	postReq.Title = title
 	postReq.Content = content
+	
 	var jsonStr, _ = json.Marshal(postReq)
-
 	req, _ := http.NewRequest("POST", "/posts", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
+	req.Header.Set("Cookie", loginResp["cookie"].(string))
+	
+	postResp := httptest.NewRecorder()
 	s.testRouter.ServeHTTP(postResp, req)
 	
 	var resp map[string] interface{}
@@ -158,15 +145,17 @@ func (s *CommonTestSuite)createPost(title string, content string) (map[string] i
 }
 
 func (s *CommonTestSuite)createComment(pid string, content string) (map[string] interface{}, error) {
-	postResp := httptest.NewRecorder()
+	loginResp := s.login(fakeUser(11))
 
-	var commentReq model.CommentRequest 
+	var commentReq CommentRequest 
 	commentReq.Content = content
+	
 	var jsonStr, _ = json.Marshal(commentReq)
-
 	req, _ := http.NewRequest("POST", "/posts/"+pid+"/comments", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
+	req.Header.Set("Cookie", loginResp["cookie"].(string))
+	
+	postResp := httptest.NewRecorder()
 	s.testRouter.ServeHTTP(postResp, req)
 	
 	var resp map[string] interface{}
@@ -175,16 +164,6 @@ func (s *CommonTestSuite)createComment(pid string, content string) (map[string] 
 	}
 	resp["code"] = postResp.Code
 	return resp, nil
-}
-
-func fakeUser() {
-	fakeUser := model.UserRequest{}
-	fakeUser.Username = "test_name"
-	fakeUser.Password = "test_pass"
-	err := model.Register(fakeUser)
-	if err != nil {
-		log.Print(err.Error())
-	}
 }
 func fakePost(id uint) {
 	post := model.Post{}
@@ -197,25 +176,19 @@ func fakePost(id uint) {
 	}
 }
 func (s *CommonTestSuite)TestCreatePost() {
-	fakeUser()
-	err := s.login("test_name", "test_pass")
-	assert.Equal(s.T(), err, nil)
 	title := "test_title"
 	content := "test_content"
 	resp, err := s.createPost(title, content)
 	if err != nil {
 		log.Print(err.Error())
 	}
-	
+
 	assert.Equal(s.T(), http.StatusCreated, resp["code"])
-	assert.Equal(s.T(), title, resp["Post"].(map[string]interface{})["title"])
-	assert.Equal(s.T(), content, resp["Post"].(map[string]interface{})["content"])
+	assert.Equal(s.T(), title, resp["post"].(map[string]interface{})["title"])
+	assert.Equal(s.T(), content, resp["post"].(map[string]interface{})["content"])
 }
 
 func (s *CommonTestSuite)TestCreateComment() {
-	fakeUser()
-	err := s.login("test_name", "test_pass")
-	assert.Equal(s.T(), err, nil)
 	fakePost(11)
 	content := "test_comment_content"
 	resp, err := s.createComment("11",content)

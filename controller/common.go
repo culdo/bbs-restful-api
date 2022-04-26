@@ -10,6 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type PostRequest struct {
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+}
+
+type CommentRequest struct {
+	Content string `json:"content"`
+}
+
 func Index(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Welcome to my BBS APP"})
 }
@@ -19,20 +28,22 @@ func CreatePost(c *gin.Context) {
 
 	uid := session.Get(config.IdentityKey).(uint)
 
-	var postReq model.PostRequest
+	var postReq PostRequest
 	if err := c.ShouldBindJSON(&postReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var post model.Post
-	post.PostRequest = postReq
+	post.Title = postReq.Title
+	post.Content = postReq.Content
+
 	post.UserID = uid
 	if err := model.Save(&post); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Post created successfully!", "Post": post})
+	c.JSON(http.StatusCreated, gin.H{"message": "Post created successfully!", "post": post})
 }
 
 func CreateComment(c *gin.Context) {
@@ -41,13 +52,16 @@ func CreateComment(c *gin.Context) {
 	uid := session.Get(config.IdentityKey).(uint)
 
 
-	var comment_req model.CommentRequest
+	var comment_req CommentRequest
 	if err := c.ShouldBindJSON(&comment_req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	_, err := model.CreateComment(pid, comment_req, uid)
+	var comment model.Comment
+	comment.Content = comment_req.Content
+	comment.UserID = uid
+	_, err := model.CreateComment(pid, comment)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

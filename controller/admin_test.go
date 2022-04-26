@@ -1,20 +1,20 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/culdo/bbs-restful-api/auth"
-	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/middleware"
 	"github.com/culdo/bbs-restful-api/model"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminTestSuite struct {
@@ -28,27 +28,46 @@ func TestAdmin(t *testing.T) {
 }
 
 func (s *AdminTestSuite) setupTestRouter(){
-	router := s.testRouter
+	router := gin.Default()
 	admin := router.Group("/admin")
-	admin.Use(auth.AuthRequired("admin"))
-	{
-		admin.GET("/posts", middleware.DoHidePost(false), FetchPosts)
-		admin.GET("/posts/search", SearchAllPost)
-		admin.POST("/posts/:id/hide", HidePost)
-		admin.POST("/posts/:id/unhide", UnhidePost)
-		admin.POST("/users/:id/ban", BanUser)
-		admin.POST("/users/:id/activate", ActivateUser)
-	}
+
+	admin.GET("/posts", middleware.DoHidePost(false), FetchPosts)
+	admin.GET("/posts/search", SearchAllPost)
+	admin.PATCH("/posts/:id", UpdatePost)
+	admin.PATCH("/users/:id", UpdateUser)
+	s.testRouter = router
 }
 
-func (s *AdminTestSuite) adminRunTask(name string, subId int) (map[string] interface{}, error) {
-	postResp := httptest.NewRecorder()
-	taskName := strings.Split(name, " ")[0]
-	taskType := strings.Split(name, " ")[1]
+func fakeUser(id uint) (string, string){
+	user := model.User{}
+	user.ID = id
+	user.Username = "test_username" + fmt.Sprint(user.ID)
+	password := "test_hashedpass" + fmt.Sprint(user.ID)
+	var err error
+	user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil{
+		panic(err.Error())
+	}
+	err = model.Save(&user)
+	if err != nil {
+		panic(err.Error())
+	}
+	return user.Username, password
+}
 
-	req, _ := http.NewRequest("POST", "/admin/"+taskType+"s/"+fmt.Sprint(subId)+"/"+taskName, nil)
+func (s *AdminTestSuite) adminRunTask(taskType string, subId uint, updateReq map[string]interface{}) (map[string] interface{}, error) {
+	
+	if taskType=="post" {
+		fakePost(subId) 
+	}else if taskType=="user" {
+		fakeUser(subId)
+	}
+
+	postResp := httptest.NewRecorder()
+
+	var jsonStr, _ = json.Marshal(updateReq)
+	req, _ := http.NewRequest("PATCH", "/admin/"+taskType+"s/"+fmt.Sprint(subId), bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", s.loginResp["cookie"].(string))
 	s.testRouter.ServeHTTP(postResp, req)
 	
 	var resp map[string] interface{}
@@ -59,23 +78,36 @@ func (s *AdminTestSuite) adminRunTask(name string, subId int) (map[string] inter
 	return resp, nil
 }
 
-func (s *AdminTestSuite)TestHidePost() {
-	err := s.login("admin", config.AdminPasswd)
-	// resp, _, err := login("test_name", "test_pass")
-	if err!=nil {
-		log.Print(err.Error())
-	}
-	testPost := &model.Post{}
-	testPost.Title = "test_title"
-	testPost.Content = "test_content"
-	model.Save(testPost)
-	pid := 1
-	resp, err := s.adminRunTask("hide post", pid)
+func (s *AdminTestSuite)TestAdminPost() {
+	resp, err := s.adminRunTask("post", 101, map[string]interface{}{"hidden":true})
 	if err!=nil {
 		log.Print(err.Error())
 	}
 	assert.Equal(s.T(), http.StatusCreated, resp["code"])
-	assert.Equal(s.T(), "Post is hidden!", resp["message"])
-	assert.Equal(s.T(), fmt.Sprint(pid), resp["pid"])
+	assert.Equal(s.T(), "Post is updated!", resp["message"])
+	assert.Equal(s.T(), "101", resp["pid"])
+	resp, err = s.adminRunTask("post", 101, map[string]interface{}{"hidden":false})
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	assert.Equal(s.T(), http.StatusCreated, resp["code"])
+	assert.Equal(s.T(), "Post is updated!", resp["message"])
+	assert.Equal(s.T(), "101", resp["pid"])
 }
 
+func (s *AdminTestSuite)TestAdminUser() {
+	resp, err := s.adminRunTask("user", 101, map[string]interface{}{"active":true})
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	assert.Equal(s.T(), http.StatusCreated, resp["code"])
+	assert.Equal(s.T(), "User is updated!", resp["message"])
+	assert.Equal(s.T(), "101", resp["uid"])
+	resp, err = s.adminRunTask("user", 101, map[string]interface{}{"active":false})
+	if err!=nil {
+		log.Print(err.Error())
+	}
+	assert.Equal(s.T(), http.StatusCreated, resp["code"])
+	assert.Equal(s.T(), "User is updated!", resp["message"])
+	assert.Equal(s.T(), "101", resp["uid"])
+}

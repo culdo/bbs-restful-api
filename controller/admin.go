@@ -7,38 +7,47 @@ import (
 	"github.com/culdo/bbs-restful-api/model"
 )
 
-func HidePost(c *gin.Context) {
+var postAttrs = []string{"hidden"}
+var userAttrs = []string{"active"}
+
+func checkReq(updateReq map[string]interface{}, attrs []string) map[string]interface{} {
+	checkedReq := make(map[string]interface{})
+	for k, v := range updateReq {
+		for _, attr := range attrs {
+			if k == attr {
+				checkedReq[k] = v
+			}
+		} 
+	}
+	return checkedReq
+}
+
+func UpdatePost(c *gin.Context) {
 	pid := c.Param("id")
-	if err := model.HidePost(pid, true); err != nil {
+	var updateReq map[string]interface{}
+	if err := c.ShouldBindJSON(&updateReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Post is hidden!", "pid": pid})
-}
-
-func UnhidePost(c *gin.Context) {
-	pid := c.Param("id")
-	if err := model.HidePost(pid, false); err != nil {
+	updateReq = checkReq(updateReq, postAttrs)
+	if err := model.UpdatePost(pid, updateReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Post is Unhidden!", "pid": pid})
+	c.JSON(http.StatusCreated, gin.H{"message": "Post is updated!", "pid": pid})
 }
 
-func BanUser(c *gin.Context) {
+func UpdateUser(c *gin.Context) {
 	uid := c.Param("id")
-	if err := model.ActivateUser(uid, false); err != nil {
+	var updateReq map[string]interface{}
+	if err := c.ShouldBindJSON(&updateReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User is banned!", "uid": uid})
-}
-
-func ActivateUser(c *gin.Context) {
-	uid := c.Param("id")
-	if err := model.ActivateUser(uid, true); err != nil {
+	updateReq = checkReq(updateReq, userAttrs)
+	if err := model.UpdateUser(uid, updateReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User is active!", "uid": uid})
+	c.JSON(http.StatusCreated, gin.H{"message": "User is updated!", "uid": uid})
 }

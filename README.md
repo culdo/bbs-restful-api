@@ -56,8 +56,6 @@ Set `DATABASE_URL`, `SESSION_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
 ### 搜尋留言內容，回傳留言
 `curl -i -X GET -H "Cookie: <login-returned-set-cookies>" -H 'Content-Type: application/json' 127.0.0.1:8080/admin/posts/search?keyword="123"`
 
-# CI, CD
-使用Github Action部屬於Heroku
 # To-do-list
 - [x] Use bcrypt on password accessing
 - [x] Deploy on cloud service
