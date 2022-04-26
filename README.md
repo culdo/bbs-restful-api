@@ -1,17 +1,19 @@
 # BBS RESTful API
 Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/)
 # 功能
+* `/posts`: 瀏覽目前的留言(不包含隱藏留言，預設30筆)
+* `/register`: 註冊帳號
+* `/login`: 登入帳號
 ## 使用者
-1. 可以瀏覽目前的留言(不包含隱藏留言)
-2. 可以註冊帳號
-3. 可以登入
-4. 登入後可以留言
-5. 登入後回覆特定留言
+* `POST /posts`: 創建留言
+* `POST /posts/:id/comments`: 回覆特定留言
 ## 管理員
-1. 可以瀏覽目前的留言(包含隱藏留言)
-2. 可以搜尋留言內容
-3. 可以隱藏/顯示留言
-4. 可以將使用者停權/解封
+* `/admin/posts`: 瀏覽目前的留言(包含隱藏留言，預設30筆)
+* `/admin/posts/search`: 搜尋留言內容
+* `POST /admin/posts/:id/hide`: 隱藏特定留言
+* `POST /admin/posts/:id/unhide`: 顯示特定留言
+* `POST /admin/users/:id/ban`:停權特定使用者
+* `POST /admin/users/:id/activate`:解封特定使用者
 # Developing
 ```bash
 export DATABASE_URL="your_postgredb_url"
@@ -25,7 +27,7 @@ go run main.go
 Check out `.github/workflows/main.yaml` to see how it works
 # Delopy on Heroku
 Set `DATABASE_URL`, `SESSION_KEY` and `ADMIN_PASSWD` as your app's `Config Vars`
-# API
+# cURL examples
 ## 使用者
 ### 取得所有留言(不包含隱藏留言)
 `curl -i -X GET -H 'Content-Type: application/json' 127.0.0.1:8080/posts`
