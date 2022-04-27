@@ -16,13 +16,20 @@ Try it on [bbs-restful-api.herokuapp.com](https://bbs-restful-api.herokuapp.com/
 * `POST /admin/users/:id/activate`:解封特定使用者
 # Developing
 ```bash
+# You need to create a db user if you have't one
+sudo -u postgres createuser -s <username>
+
 export DATABASE_URL="your_postgredb_url"
 export SESSION_KEY="session_store_secret_you_want"
 export ADMIN_PASSWD="bbs_admin_password_you_want"
 go run main.go
 ```
 # Testing
-`go test -count=1 ./...`
+```bash
+# You need to create a test db if you have't one
+sudo -u postgres createdb bbstest
+go test -count=1 ./...
+```
 # Testing with GitHub Action
 Check out `.github/workflows/main.yaml` to see how it works
 # Depoly on Heroku

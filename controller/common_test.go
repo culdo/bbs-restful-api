@@ -31,6 +31,7 @@ type BaseTester interface {
 }
 
 func setupDB() {
+	config.DatabaseUrl = "postgresql:///bbstest"
 	db := model.Init()
 	migration.Migrate(db)
 	clean(db)
