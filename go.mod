@@ -6,25 +6,28 @@ go 1.18
 
 require (
 	github.com/appleboy/gin-jwt/v2 v2.8.0
+	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.7.7
+	github.com/golang/glog v1.0.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
+	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	gorm.io/driver/postgres v1.3.4
 	gorm.io/gorm v1.23.4
 )
 
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
-	github.com/gin-contrib/sessions v0.0.5 // indirect
-	github.com/golang/glog v1.0.0 // indirect
+	github.com/antonlindstrom/pgstore v0.0.0-20200229204646-b08ebf1105e0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/googleapis/gax-go/v2 v2.3.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/lib/pq v1.10.3 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
 	google.golang.org/grpc v1.46.0 // indirect
@@ -38,7 +41,6 @@ require (
 	github.com/go-playground/validator/v10 v10.10.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.3.0
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

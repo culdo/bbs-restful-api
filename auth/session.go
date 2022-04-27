@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/postgres"
 
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
@@ -12,7 +12,15 @@ import (
 )
 
 func Session(name string) gin.HandlerFunc {
-	return sessions.Sessions(name, cookie.NewStore([]byte(config.SessionKey)))
+	sql, err := model.DB.DB()
+	if err != nil {
+		panic(err.Error())
+	}
+	store, err := postgres.NewStore(sql, []byte(config.SessionKey))
+	if err != nil {
+		panic(err.Error())
+	}
+	return sessions.Sessions(name, store)
 }
 
 
