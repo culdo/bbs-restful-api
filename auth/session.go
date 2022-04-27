@@ -2,9 +2,10 @@ package auth
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/antonlindstrom/pgstore"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/postgres"
 
 	"github.com/culdo/bbs-restful-api/config"
 	"github.com/culdo/bbs-restful-api/model"
@@ -16,13 +17,23 @@ func Session(name string) gin.HandlerFunc {
 	if err != nil {
 		panic(err.Error())
 	}
-	store, err := postgres.NewStore(sql, []byte(config.SessionKey))
+	store, err := pgstore.NewPGStoreFromPool(sql, []byte(config.SessionKey))
+
 	if err != nil {
 		panic(err.Error())
 	}
-	return sessions.Sessions(name, store)
+
+	store.Cleanup(time.Minute * 5)
+	return sessions.Sessions(name, &Sstore{store})
 }
 
+type Sstore struct {
+	*pgstore.PGStore
+}
+
+func (s *Sstore) Options(options sessions.Options) {
+	s.PGStore.Options = options.ToGorillaOptions()
+}
 
 // AuthRequired is a simple middleware to check the session
 func AuthRequired(userType string) gin.HandlerFunc {
