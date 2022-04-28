@@ -62,31 +62,31 @@ curl -i -X POST -d '{"content":"test_comment"}' --cookie "$cookie" -H 'Content-T
 ## 管理員
 ### 登入
 ```bash
-cookie=$(curl -i -X POST -d '{"username":"admin","password":'"\"$ADMIN_PASSWD\""'}' -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/login | grep -Po '(?<=Set-Cookie: ).+(?=\r)')
+admin_cookie=$(curl -i -X POST -d '{"username":"admin","password":'"\"$ADMIN_PASSWD\""'}' -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/login | grep -Po '(?<=Set-Cookie: ).+(?=\r)')
 ```
 ### 停權使用者(id = 1)
 ```bash
-curl -i -X PATCH -d '{"active": false}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
+curl -i -X PATCH -d '{"active": false}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
 ```
 ### 解封使用者(id = 1)
 ```bash
-curl -i -X PATCH -d '{"active": true}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
+curl -i -X PATCH -d '{"active": true}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
 ```
 ### 隱藏留言(id = 2)
 ```bash
-curl -i -X PATCH -d '{"hidden": true}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/2
+curl -i -X PATCH -d '{"hidden": true}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/2
 ```
 ### 顯示留言(id = 2)
 ```bash
-curl -i -X PATCH -d '{"hidden": false}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/2
+curl -i -X PATCH -d '{"hidden": false}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/2
 ```
 ### 取得所有留言(包含隱藏留言)
 ```bash
-curl -i -X GET --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts
+curl -i -X GET --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts
 ```
 ### 搜尋留言內容，回傳留言
 ```bash
-curl -i -X GET --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/search?keyword="123"
+curl -i -X GET --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/posts/search?keyword="123"
 ```
 
 # To-do-list
