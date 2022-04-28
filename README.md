@@ -52,7 +52,7 @@ cookie=$(curl -i -X POST -d '{"username":"test_login","password":"test_password"
 ```
 ### 發布留言
 ```bash
-curl -i -X POST -d '{"ID":1,"title":"test_title2","content":"test_content2"}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/posts
+curl -i -X POST -d '{"title":"test_title2","content":"test_content2"}' --cookie "$cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/posts
 ```
 ### 回覆留言(id = 2)
 ```bash
@@ -64,13 +64,13 @@ curl -i -X POST -d '{"content":"test_comment"}' --cookie "$cookie" -H 'Content-T
 ```bash
 admin_cookie=$(curl -i -X POST -d '{"username":"admin","password":'"\"$ADMIN_PASSWD\""'}' -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/login | grep -Po '(?<=Set-Cookie: ).+(?=\r)')
 ```
-### 停權使用者(id = 1)
+### 停權使用者(id = 2)
 ```bash
-curl -i -X PATCH -d '{"active": false}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
+curl -i -X PATCH -d '{"active": false}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/2
 ```
-### 解封使用者(id = 1)
+### 解封使用者(id = 2)
 ```bash
-curl -i -X PATCH -d '{"active": true}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/1
+curl -i -X PATCH -d '{"active": true}' --cookie "$admin_cookie" -H 'Content-Type: application/json' bbs-restful-api.herokuapp.com/admin/users/2
 ```
 ### 隱藏留言(id = 2)
 ```bash
